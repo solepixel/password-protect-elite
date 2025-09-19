@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+build/
+dist/
+*.min.js
+*.min.css
+
+# WordPress core files
+wp-admin/
+wp-includes/
+wp-content/uploads/
+
+# Plugin specific
+languages/*.pot
+languages/*.po
+languages/*.mo
+
+# Configuration files that shouldn't be formatted
+composer.lock
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp

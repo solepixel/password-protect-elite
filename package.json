@@ -1,0 +1,48 @@
+{
+	"name": "password-protect-elite",
+	"version": "1.0.0",
+	"description": "Advanced password protection for WordPress with multiple password groups, custom blocks, and flexible redirect options.",
+	"main": "password-protect-elite.php",
+	"scripts": {
+		"lint:php": "phpcs --standard=.phpcs.xml",
+		"lint:php:fix": "phpcbf --standard=.phpcs.xml",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"build": "npm run lint:php && npm run format:check",
+		"dev": "npm run build",
+		"check": "npm run lint:php && npm run format:check"
+	},
+	"keywords": [
+		"wordpress",
+		"plugin",
+		"password",
+		"protection",
+		"security",
+		"gutenberg",
+		"blocks"
+	],
+	"author": "Briantics, Inc.",
+	"license": "GPL-2.0-or-later",
+	"homepage": "https://b7s.co/",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/solepixel/password-protect-elite.git"
+	},
+	"bugs": {
+		"url": "https://github.com/solepixel/password-protect-elite/issues"
+	},
+	"devDependencies": {
+		"@prettier/plugin-php": "^0.22.0",
+		"prettier": "^3.0.0",
+		"prettier-plugin-tailwindcss": "^0.5.0"
+	},
+	"engines": {
+		"node": ">=16.0.0",
+		"npm": ">=8.0.0"
+	},
+	"browserslist": [
+		"> 1%",
+		"last 2 versions",
+		"not dead"
+	]
+}

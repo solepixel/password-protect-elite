@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<ruleset name="Password Protect Elite">
+	<description>WordPress Coding Standards for Password Protect Elite Plugin</description>
+
+	<!-- What to scan -->
+	<file>.</file>
+
+	<!-- Exclude patterns -->
+	<exclude-pattern>/vendor/</exclude-pattern>
+	<exclude-pattern>/node_modules/</exclude-pattern>
+	<exclude-pattern>/build/</exclude-pattern>
+	<exclude-pattern>/dist/</exclude-pattern>
+	<exclude-pattern>*.min.js</exclude-pattern>
+	<exclude-pattern>*.min.css</exclude-pattern>
+	<exclude-pattern>*.js</exclude-pattern>
+	<exclude-pattern>*.css</exclude-pattern>
+	<exclude-pattern>password-protect-elite.php</exclude-pattern>
+	<exclude-pattern>/languages/</exclude-pattern>
+
+	<!-- How to scan -->
+	<arg name="colors"/>
+	<arg name="parallel" value="80"/>
+	<arg name="cache"/>
+
+	<!-- Rules: Check WordPress Coding Standards -->
+	<rule ref="WordPress"/>
+
+	<!-- Allow short array syntax -->
+	<rule ref="Generic.Arrays.DisallowShortArraySyntax"/>
+
+	<!-- Allow our current file naming structure -->
+	<rule ref="WordPress.Files.FileName">
+		<type>warning</type>
+	</rule>
+
+	<!-- Allow our current class naming structure -->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<type>warning</type>
+	</rule>
+
+	<!-- Text domain -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="password-protect-elite"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Allow some database operations -->
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<type>warning</type>
+	</rule>
+
+	<!-- Allow some sanitization bypasses for plugin functionality -->
+	<rule ref="WordPress.Security.ValidatedSanitizedInput">
+		<type>warning</type>
+	</rule>
+
+	<!-- Allow some non-sanitized input for plugin functionality -->
+	<rule ref="WordPress.Security.NonceVerification">
+		<type>warning</type>
+	</rule>
+
+	<!-- Allow some escaping bypasses for plugin functionality -->
+	<rule ref="WordPress.Security.EscapeOutput">
+		<type>warning</type>
+	</rule>
+</ruleset>

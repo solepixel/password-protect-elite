@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "password-protect-elite/protected-content",
+	"version": "1.0.0",
+	"title": "Protected Content",
+	"category": "common",
+	"icon": "hidden",
+	"description": "Content that is hidden until the correct password is entered.",
+	"keywords": ["password", "protected", "content", "security", "section"],
+	"textdomain": "password-protect-elite",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:./style.css",
+	"render": "file:./render.php",
+	"attributes": {
+		"allowedGroups": {
+			"type": "array",
+			"default": []
+		},
+		"fallbackMessage": {
+			"type": "string",
+			"default": "This content is password protected."
+		},
+		"className": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"className": true,
+		"customClassName": true,
+		"innerBlocks": true
+	}
+}

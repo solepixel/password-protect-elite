@@ -1,0 +1,65 @@
+{
+	"name": "briantics/password-protect-elite",
+	"description": "Advanced password protection for WordPress with multiple password groups, custom blocks, and flexible redirect options.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"authors": [
+		{
+			"name": "Briantics, Inc.",
+			"email": "info@b7s.co",
+			"homepage": "https://b7s.co/"
+		}
+	],
+	"keywords": [
+		"wordpress",
+		"plugin",
+		"password",
+		"protection",
+		"security",
+		"gutenberg",
+		"blocks"
+	],
+	"homepage": "https://b7s.co/",
+	"support": {
+		"issues": "https://github.com/solepixel/password-protect-elite/issues",
+		"source": "https://github.com/solepixel/password-protect-elite"
+	},
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.0",
+		"squizlabs/php_codesniffer": "^3.7",
+		"wp-coding-standards/wpcs": "^3.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+	},
+    "autoload": {
+        "psr-4": {
+            "PasswordProtectElite\\": "src/classes/"
+        }
+    },
+	"autoload-dev": {
+		"psr-4": {
+			"PasswordProtectElite\\Tests\\": "tests/"
+		}
+	},
+	"scripts": {
+		"test": "phpunit",
+		"lint": "phpcs --standard=.phpcs.xml",
+		"lint:fix": "phpcbf --standard=.phpcs.xml",
+		"compatibility": "phpcs --standard=PHPCompatibilityWP --runtime-set testVersion 7.4-",
+		"check": [
+			"@lint",
+			"@compatibility"
+		]
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"sort-packages": true
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true
+}

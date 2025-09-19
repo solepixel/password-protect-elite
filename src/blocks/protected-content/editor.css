@@ -1,0 +1,46 @@
+/**
+ * Editor styles for Protected Content block.
+ */
+
+.ppe-protected-content-editor {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background: #f9f9f9;
+}
+
+.ppe-block-header {
+	padding: 15px 20px;
+	border-bottom: 1px solid #ddd;
+	background: #fff;
+}
+
+.ppe-block-header h4 {
+	margin: 0 0 8px 0;
+	color: #1e1e1e;
+	font-size: 16px;
+}
+
+.ppe-block-description {
+	margin: 0;
+	color: #666;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.ppe-protected-content-editor .block-editor-inner-blocks {
+	padding: 20px;
+	background: #fff;
+}
+
+.ppe-protected-content-editor .block-editor-inner-blocks::before {
+	content: "🔒 Protected Content";
+	display: block;
+	margin-bottom: 15px;
+	padding: 8px 12px;
+	background: #fff3cd;
+	border: 1px solid #ffeaa7;
+	border-radius: 4px;
+	color: #856404;
+	font-size: 14px;
+	font-weight: 600;
+}

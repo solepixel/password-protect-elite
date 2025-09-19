@@ -1,0 +1,64 @@
+/**
+ * Help page styles for Password Protect Elite
+ */
+
+.ppe-help-page {
+	max-width: 1200px;
+}
+
+.ppe-help-content {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 30px;
+	margin-top: 20px;
+}
+
+.ppe-help-section {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.ppe-help-section h2 {
+	margin-top: 0;
+	color: #1d2327;
+	border-bottom: 1px solid #c3c4c7;
+	padding-bottom: 10px;
+}
+
+.ppe-help-section h3 {
+	color: #2271b1;
+	margin-top: 20px;
+}
+
+.ppe-help-section ul {
+	margin: 10px 0;
+	padding-left: 20px;
+}
+
+.ppe-help-section li {
+	margin-bottom: 5px;
+}
+
+.ppe-help-section strong {
+	color: #1d2327;
+}
+
+.ppe-help-section p {
+	line-height: 1.6;
+	color: #3c434a;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.ppe-help-content {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+
+	.ppe-help-section {
+		padding: 15px;
+	}
+}
