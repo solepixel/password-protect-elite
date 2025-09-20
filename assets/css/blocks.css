@@ -23,9 +23,10 @@
 .ppe-password-input {
     width: 100%;
     padding: 12px;
-    border: 1px solid #ccc;
+    border: 2px solid #fff;
     border-radius: 4px;
     font-size: 16px;
+    background: #fff;
     box-sizing: border-box;
 }
 
@@ -83,33 +84,35 @@
 
 .ppe-protected-content-block.ppe-locked {
     position: relative;
+    background: #fff3cd;
+    border: 2px solid #ffeaa7;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
 }
 
-.ppe-protected-content-block.ppe-locked::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    z-index: 1;
-}
+/* Removed overlay that was blocking interactions */
 
 .ppe-protected-message {
     text-align: center;
-    padding: 40px 20px;
+    padding: 0;
     font-size: 18px;
-    color: #666;
-    background: #f9f9f9;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    color: #333;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 15px;
+    font-weight: 500;
 }
 
 .ppe-protected-content-form {
-    max-width: 400px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 /* Loading States */
