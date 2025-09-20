@@ -150,6 +150,7 @@ class Blocks {
 					'passwordRequired' => __( 'Password is required', 'password-protect-elite' ),
 					'invalidPassword'  => __( 'Invalid password', 'password-protect-elite' ),
 					'validating'       => __( 'Validating...', 'password-protect-elite' ),
+					'error'            => __( 'An error occurred. Please try again.', 'password-protect-elite' ),
 				),
 			)
 		);

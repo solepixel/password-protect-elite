@@ -30,6 +30,12 @@
 		"html": false,
 		"className": true,
 		"customClassName": true,
-		"innerBlocks": true
+		"innerBlocks": true,
+		"anchor": true,
+		"align": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
 	}
 }

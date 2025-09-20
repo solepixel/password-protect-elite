@@ -2,10 +2,27 @@
  * Editor styles for Protected Content block.
  */
 
+.ppe-protected-content-wrapper {
+	position: relative;
+	cursor: pointer;
+}
+
+.ppe-protected-content-wrapper:hover .ppe-protected-content-editor {
+	border-color: #0073aa;
+	box-shadow: 0 0 0 1px #0073aa;
+}
+
+.ppe-protected-content-wrapper.is-selected .ppe-protected-content-editor {
+	border-color: #0073aa;
+	box-shadow: 0 0 0 1px #0073aa;
+}
+
 .ppe-protected-content-editor {
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	background: #f9f9f9;
+	min-height: 80px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ppe-block-header {

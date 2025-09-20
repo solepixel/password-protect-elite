@@ -2,11 +2,28 @@
  * Editor styles for Password Entry block.
  */
 
+.ppe-password-entry-wrapper {
+	position: relative;
+	cursor: pointer;
+}
+
+.ppe-password-entry-wrapper:hover .ppe-password-entry-editor {
+	border-color: #0073aa;
+	box-shadow: 0 0 0 1px #0073aa;
+}
+
+.ppe-password-entry-wrapper.is-selected .ppe-password-entry-editor {
+	border-color: #0073aa;
+	box-shadow: 0 0 0 1px #0073aa;
+}
+
 .ppe-password-entry-editor {
 	padding: 20px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	background: #f9f9f9;
+	min-height: 60px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ppe-block-preview h4 {

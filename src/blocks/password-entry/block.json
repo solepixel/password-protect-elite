@@ -37,6 +37,12 @@
 	"supports": {
 		"html": false,
 		"className": true,
-		"customClassName": true
+		"customClassName": true,
+		"anchor": true,
+		"align": false,
+		"spacing": {
+			"margin": true,
+			"padding": true
+		}
 	}
 }

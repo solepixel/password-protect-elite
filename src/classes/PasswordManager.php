@@ -148,8 +148,9 @@ class PasswordManager {
 		?>
 		<form class="<?php echo esc_attr( $args['class'] ); ?>" data-type="<?php echo esc_attr( $args['type'] ); ?>" data-allowed-groups="<?php echo esc_attr( wp_json_encode( $args['allowed_groups'] ) ); ?>" data-redirect-url="<?php echo esc_attr( $args['redirect_url'] ); ?>">
 			<?php wp_nonce_field( 'ppe_validate_password', 'ppe_nonce' ); ?>
-			<input type="password" name="password" placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>" required>
-			<button type="submit"><?php echo esc_html( $args['button_text'] ); ?></button>
+			<input type="password" name="password" class="ppe-password-input" placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>" required>
+			<button type="submit" class="ppe-submit-button"><?php echo esc_html( $args['button_text'] ); ?></button>
+			<div class="ppe-error-message" style="display: none;"></div>
 		</form>
 		<?php
 		return ob_get_clean();

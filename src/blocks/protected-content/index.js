@@ -3,14 +3,8 @@
  */
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
-import { createElement } from '@wordpress/element';
-import {
-	InspectorControls,
-	PanelBody,
-	SelectControl,
-	TextareaControl,
-	InnerBlocks,
-} from '@wordpress/block-editor';
+import { InspectorControls, BlockControls, InnerBlocks, useBlockProps } from '@wordpress/block-editor';
+import { PanelBody, SelectControl, TextareaControl, ToolbarGroup, ToolbarButton } from '@wordpress/components';
 
 /**
  * Block registration
@@ -19,6 +13,7 @@ registerBlockType('password-protect-elite/protected-content', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
 		const { allowedGroups, fallbackMessage } = attributes;
+		const blockProps = useBlockProps();
 
 		// Get password groups from localized data
 		const passwordGroups = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.passwordGroups) || [];
@@ -36,23 +31,61 @@ registerBlockType('password-protect-elite/protected-content', {
 			}))
 		);
 
-		// Debug: Check if components are available
-		console.log('InspectorControls:', InspectorControls);
-		console.log('PanelBody:', PanelBody);
-		console.log('SelectControl:', SelectControl);
-		console.log('TextareaControl:', TextareaControl);
-		console.log('InnerBlocks:', InnerBlocks);
-
-		return createElement(
-			'div',
-			{ className: 'ppe-protected-content-editor' },
-			createElement(
-				'div',
-				{ className: 'ppe-block-header' },
-				createElement('h4', null, __('Protected Content', 'password-protect-elite')),
-				createElement('p', { className: 'ppe-block-description' }, __('Add content below. It will be hidden until the correct password is entered.', 'password-protect-elite'))
-			),
-			createElement('div', { className: 'ppe-content-placeholder' }, __('This content is protected by password. Add your content here.', 'password-protect-elite'))
+		return (
+			<div {...blockProps} className={`ppe-protected-content-wrapper ${blockProps.className || ''}`}>
+				<BlockControls>
+					<ToolbarGroup>
+						<ToolbarButton
+							icon="hidden"
+							label={__('Edit Protected Content', 'password-protect-elite')}
+							onClick={() => {}}
+						>
+							{__('Protected Content', 'password-protect-elite')}
+						</ToolbarButton>
+					</ToolbarGroup>
+				</BlockControls>
+				<InspectorControls>
+					<PanelBody
+						title={__('Protected Content Settings', 'password-protect-elite')}
+						initialOpen={true}
+					>
+						<SelectControl
+							label={__('Allowed Password Groups', 'password-protect-elite')}
+							help={__('Select which password groups can unlock this content.', 'password-protect-elite')}
+							value={allowedGroups.length > 0 ? allowedGroups.join(',') : ''}
+							options={groupOptions}
+							__next40pxDefaultSize={true}
+							__nextHasNoMarginBottom={true}
+							onChange={(value) => {
+								setAttributes({
+									allowedGroups: value ? value.split(',').map(id => parseInt(id)) : []
+								});
+							}}
+						/>
+						<TextareaControl
+							label={__('Fallback Message', 'password-protect-elite')}
+							help={__('Message shown when content is locked.', 'password-protect-elite')}
+							value={fallbackMessage}
+							__nextHasNoMarginBottom={true}
+							onChange={(value) => setAttributes({ fallbackMessage: value })}
+						/>
+					</PanelBody>
+				</InspectorControls>
+				<div className="ppe-protected-content-editor">
+					<div className="ppe-block-header">
+						<h4>{__('Protected Content', 'password-protect-elite')}</h4>
+						<p className="ppe-block-description">
+							{__('Add content below. It will be hidden until the correct password is entered.', 'password-protect-elite')}
+						</p>
+					</div>
+					<InnerBlocks
+						allowedBlocks={true}
+						template={[
+							['core/paragraph', { content: __('This content is protected by password. Add your content here.', 'password-protect-elite') }]
+						]}
+					/>
+				</div>
+			</div>
 		);
 	},
 
