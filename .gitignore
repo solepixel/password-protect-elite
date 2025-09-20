@@ -2,9 +2,9 @@
 node_modules/
 vendor/
 
-# Build outputs (not needed for this plugin)
-# build/
-# dist/
+# Build outputs
+build/
+dist/
 
 # IDE
 .vscode/

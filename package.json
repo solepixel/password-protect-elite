@@ -3,13 +3,16 @@
 	"version": "1.0.0",
 	"description": "Advanced password protection for WordPress with multiple password groups, custom blocks, and flexible redirect options.",
 	"main": "password-protect-elite.php",
+	"type": "module",
 	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
 		"lint:php": "phpcs --standard=.phpcs.xml",
 		"lint:php:fix": "phpcbf --standard=.phpcs.xml",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"build": "npm run lint:php && npm run format:check",
-		"dev": "npm run build",
 		"check": "npm run lint:php && npm run format:check"
 	},
 	"keywords": [
@@ -30,6 +33,11 @@
 	},
 	"bugs": {
 		"url": "https://github.com/solepixel/password-protect-elite/issues"
+	},
+	"dependencies": {
+		"@wordpress/scripts": "^27.0.0",
+		"react": "^19.1.1",
+		"react-dom": "^19.1.1"
 	},
 	"devDependencies": {
 		"@prettier/plugin-php": "^0.22.0",

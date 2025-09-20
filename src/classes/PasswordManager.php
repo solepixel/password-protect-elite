@@ -37,7 +37,7 @@ class PasswordManager {
 	 * Initialize session handling.
 	 */
 	public function init_session() {
-		if ( ! session_id() ) {
+		if ( ! session_id() && ! headers_sent() ) {
 			session_start();
 		}
 	}

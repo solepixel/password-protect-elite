@@ -30,6 +30,9 @@ class Blocks {
 	 * Register blocks
 	 */
 	public function register_blocks() {
+		// Register scripts as modules first.
+		$this->register_block_scripts();
+
 		// Register password entry block.
 		register_block_type(
 			PPE_PLUGIN_PATH . 'src/blocks/password-entry/block.json',
@@ -48,22 +51,43 @@ class Blocks {
 	}
 
 	/**
+	 * Register block scripts
+	 */
+	private function register_block_scripts() {
+		// Register password entry block script.
+		wp_register_script(
+			'ppe-password-entry-block',
+			PPE_PLUGIN_URL . 'build/password-entry.js',
+			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n', 'react', 'react-dom' ),
+			PPE_VERSION,
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
+
+		// Register protected content block script.
+		wp_register_script(
+			'ppe-protected-content-block',
+			PPE_PLUGIN_URL . 'build/protected-content.js',
+			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n', 'react', 'react-dom' ),
+			PPE_VERSION,
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
+	}
+
+	/**
 	 * Enqueue block editor assets
 	 */
 	public function enqueue_block_editor_assets() {
-		// Prevent duplicate loading
-		if ( wp_script_is( 'ppe-blocks', 'enqueued' ) ) {
-			return;
-		}
+		// Enqueue password entry block (already registered as module).
+		wp_enqueue_script( 'ppe-password-entry-block' );
 
-		// Enqueue combined block JavaScript file
-		wp_enqueue_script(
-			'ppe-blocks',
-			PPE_PLUGIN_URL . 'src/blocks/index.js',
-			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n' ),
-			PPE_VERSION,
-			true
-		);
+		// Enqueue protected content block (already registered as module).
+		wp_enqueue_script( 'ppe-protected-content-block' );
 
 		// Get password groups for localization.
 		$password_groups = Database::get_password_groups();
@@ -77,24 +101,24 @@ class Blocks {
 			);
 		}
 
-		// Localize script with password groups for the block editor.
-		wp_localize_script(
-			'ppe-blocks',
-			'ppeBlocks',
-			array(
-				'passwordGroups' => $groups_data,
-				'strings'        => array(
-					'passwordEntry'        => __( 'Password Entry', 'password-protect-elite' ),
-					'protectedContent'     => __( 'Protected Content', 'password-protect-elite' ),
-					'selectPasswordGroups' => __( 'Select Password Groups', 'password-protect-elite' ),
-					'buttonText'           => __( 'Button Text', 'password-protect-elite' ),
-					'placeholder'          => __( 'Placeholder Text', 'password-protect-elite' ),
-					'redirectUrl'          => __( 'Redirect URL', 'password-protect-elite' ),
-					'fallbackMessage'      => __( 'Fallback Message', 'password-protect-elite' ),
-					'noPasswordGroups'     => __( 'No password groups available. Create some in the plugin settings.', 'password-protect-elite' ),
-				),
-			)
+
+		// Localize scripts with password groups for the block editor.
+		$localization_data = array(
+			'passwordGroups' => $groups_data,
+			'strings'        => array(
+				'passwordEntry'        => __( 'Password Entry', 'password-protect-elite' ),
+				'protectedContent'     => __( 'Protected Content', 'password-protect-elite' ),
+				'selectPasswordGroups' => __( 'Select Password Groups', 'password-protect-elite' ),
+				'buttonText'           => __( 'Button Text', 'password-protect-elite' ),
+				'placeholder'          => __( 'Placeholder Text', 'password-protect-elite' ),
+				'redirectUrl'          => __( 'Redirect URL', 'password-protect-elite' ),
+				'fallbackMessage'      => __( 'Fallback Message', 'password-protect-elite' ),
+				'noPasswordGroups'     => __( 'No password groups available. Create some in the plugin settings.', 'password-protect-elite' ),
+			),
 		);
+
+		wp_localize_script( 'ppe-password-entry-block', 'ppeBlocks', $localization_data );
+		wp_localize_script( 'ppe-protected-content-block', 'ppeBlocks', $localization_data );
 	}
 
 	/**
@@ -135,10 +159,12 @@ class Blocks {
 	 * Render password entry block
 	 *
 	 * @param array  $attributes Block attributes.
-	 * @param string $content    Block content.
+	 * @param string $content    Block content (unused for this block).
 	 * @return string
 	 */
 	public function render_password_entry_block( $attributes, $content ) {
+		// Content parameter is not used for this block type.
+		unset( $content );
 		$allowed_groups = $attributes['allowedGroups'] ?? array();
 		$button_text    = $attributes['buttonText'] ?? __( 'Submit', 'password-protect-elite' );
 		$placeholder    = $attributes['placeholder'] ?? __( 'Enter password', 'password-protect-elite' );

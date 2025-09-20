@@ -9,7 +9,6 @@
 	"description": "Content that is hidden until the correct password is entered.",
 	"keywords": ["password", "protected", "content", "security", "section"],
 	"textdomain": "password-protect-elite",
-	"editorScript": "file:./index.js",
 	"editorStyle": "file:./editor.css",
 	"style": "file:./style.css",
 	"render": "file:./render.php",

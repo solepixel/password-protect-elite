@@ -9,7 +9,6 @@
 	"description": "A form for users to enter a password and get redirected.",
 	"keywords": ["password", "form", "protection", "security", "login", "authentication"],
 	"textdomain": "password-protect-elite",
-	"editorScript": "file:./index.js",
 	"editorStyle": "file:./editor.css",
 	"style": "file:./style.css",
 	"render": "file:./render.php",
