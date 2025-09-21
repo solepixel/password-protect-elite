@@ -76,7 +76,7 @@ class PasswordGroups {
 			'hierarchical'       => false,
 			'menu_position'      => 25, // After Comments.
 			'menu_icon'          => 'dashicons-lock',
-			'supports'           => array( 'title', 'editor' ),
+			'supports'           => array( 'title' ),
 			'capabilities'       => array(
 				'edit_post'          => 'manage_options',
 				'read_post'          => 'manage_options',
