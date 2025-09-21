@@ -120,6 +120,7 @@ class PasswordGroups {
 		$redirect_page_id     = get_post_meta( $post->ID, '_ppe_redirect_page_id', true );
 		$redirect_custom_url  = get_post_meta( $post->ID, '_ppe_redirect_custom_url', true );
 		$unauthenticated_behavior = get_post_meta( $post->ID, '_ppe_unauthenticated_behavior', true );
+		$unauthenticated_redirect_type = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_type', true );
 		$unauthenticated_redirect_page_id = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_page_id', true );
 		$unauthenticated_redirect_custom_url = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_custom_url', true );
 		$exclude_urls         = get_post_meta( $post->ID, '_ppe_exclude_urls', true );
@@ -142,6 +143,11 @@ class PasswordGroups {
 		// Set default unauthenticated behavior.
 		if ( empty( $unauthenticated_behavior ) ) {
 			$unauthenticated_behavior = 'show_404';
+		}
+
+		// Set default unauthenticated redirect type.
+		if ( empty( $unauthenticated_redirect_type ) ) {
+			$unauthenticated_redirect_type = 'page';
 		}
 		?>
 		<table class="form-table">
@@ -266,12 +272,12 @@ class PasswordGroups {
 				<th scope="row"><label for="ppe_unauthenticated_redirect_type"><?php esc_html_e( 'Redirect Type', 'password-protect-elite' ); ?></label></th>
 				<td>
 					<select name="ppe_unauthenticated_redirect_type" id="ppe_unauthenticated_redirect_type">
-						<option value="page"><?php esc_html_e( 'Redirect to an existing Page', 'password-protect-elite' ); ?></option>
-						<option value="custom_url"><?php esc_html_e( 'Redirect to a Custom URL', 'password-protect-elite' ); ?></option>
+						<option value="page" <?php selected( $unauthenticated_redirect_type, 'page' ); ?>><?php esc_html_e( 'Redirect to an existing Page', 'password-protect-elite' ); ?></option>
+						<option value="custom_url" <?php selected( $unauthenticated_redirect_type, 'custom_url' ); ?>><?php esc_html_e( 'Redirect to a Custom URL', 'password-protect-elite' ); ?></option>
 					</select>
 				</td>
 			</tr>
-			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-page-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior ) ? '' : 'display:none !important;'; ?>">
+			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-page-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior && 'page' === $unauthenticated_redirect_type ) ? '' : 'display:none !important;'; ?>">
 				<th scope="row"><label for="ppe_unauthenticated_redirect_page_id"><?php esc_html_e( 'Select Page', 'password-protect-elite' ); ?></label></th>
 				<td>
 					<?php
@@ -288,7 +294,7 @@ class PasswordGroups {
 					<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect unauthenticated users to.', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-custom-url-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior ) ? '' : 'display:none !important;'; ?>">
+			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-custom-url-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior && 'custom_url' === $unauthenticated_redirect_type ) ? '' : 'display:none !important;'; ?>">
 				<th scope="row"><label for="ppe_unauthenticated_redirect_custom_url"><?php esc_html_e( 'Custom Redirect URL', 'password-protect-elite' ); ?></label></th>
 				<td>
 					<input type="url" name="ppe_unauthenticated_redirect_custom_url" id="ppe_unauthenticated_redirect_custom_url" value="<?php echo esc_url( $unauthenticated_redirect_custom_url ); ?>" class="regular-text">
@@ -369,6 +375,12 @@ class PasswordGroups {
 
 			// Save unauthenticated redirect settings based on behavior.
 			if ( 'redirect' === $unauthenticated_behavior ) {
+				// Save the unauthenticated redirect type selection.
+				if ( isset( $_POST['ppe_unauthenticated_redirect_type'] ) ) {
+					$unauthenticated_redirect_type = sanitize_text_field( wp_unslash( $_POST['ppe_unauthenticated_redirect_type'] ) );
+					update_post_meta( $post_id, '_ppe_unauthenticated_redirect_type', $unauthenticated_redirect_type );
+				}
+
 				if ( isset( $_POST['ppe_unauthenticated_redirect_page_id'] ) ) {
 					update_post_meta( $post_id, '_ppe_unauthenticated_redirect_page_id', absint( wp_unslash( $_POST['ppe_unauthenticated_redirect_page_id'] ) ) );
 				}
@@ -378,6 +390,7 @@ class PasswordGroups {
 			} else {
 				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_page_id' );
 				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_custom_url' );
+				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_type' );
 			}
 		}
 
