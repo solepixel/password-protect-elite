@@ -15,6 +15,9 @@
         // Initial state - hide color section if not in 'all' mode
         var initialMode = $('#block_styles_mode').val();
         toggleColorSection(initialMode);
+
+        // Handle tab navigation
+        handleTabNavigation();
     });
 
     function toggleColorSection(mode) {
@@ -26,6 +29,12 @@
         } else {
             colorSection.hide();
         }
+    }
+
+    function handleTabNavigation() {
+        // The tab navigation is handled by WordPress URL parameters
+        // No need for custom JavaScript as the tabs will reload the page with the correct content
+        // The CSS and PHP handle the tab switching based on the URL parameter
     }
 
 })(jQuery);

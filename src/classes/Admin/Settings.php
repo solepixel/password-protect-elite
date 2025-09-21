@@ -64,11 +64,43 @@ class Settings {
 			)
 		);
 
-		// Front-end Block Styles section.
+		// General Tab - Session and Security Settings
 		add_settings_section(
-			'ppe_block_styles_section',
-			__( 'Front-end Block Styles', 'password-protect-elite' ),
-			array( $this, 'render_block_styles_section_description' ),
+			'ppe_general_section',
+			__( 'General Settings', 'password-protect-elite' ),
+			array( $this, 'render_general_section_description' ),
+			self::PAGE_SLUG
+		);
+
+		add_settings_field(
+			'session_duration',
+			__( 'Session Duration (hours)', 'password-protect-elite' ),
+			array( $this, 'render_session_duration_field' ),
+			self::PAGE_SLUG,
+			'ppe_general_section'
+		);
+
+		add_settings_field(
+			'password_attempts_limit',
+			__( 'Password Attempts Limit', 'password-protect-elite' ),
+			array( $this, 'render_password_attempts_limit_field' ),
+			self::PAGE_SLUG,
+			'ppe_general_section'
+		);
+
+		add_settings_field(
+			'lockout_duration',
+			__( 'Lockout Duration (minutes)', 'password-protect-elite' ),
+			array( $this, 'render_lockout_duration_field' ),
+			self::PAGE_SLUG,
+			'ppe_general_section'
+		);
+
+		// Appearance Tab - Block Styles and Colors
+		add_settings_section(
+			'ppe_appearance_section',
+			__( 'Appearance Settings', 'password-protect-elite' ),
+			array( $this, 'render_appearance_section_description' ),
 			self::PAGE_SLUG
 		);
 
@@ -77,7 +109,7 @@ class Settings {
 			__( 'Block Styles Mode', 'password-protect-elite' ),
 			array( $this, 'render_block_styles_field' ),
 			self::PAGE_SLUG,
-			'ppe_block_styles_section'
+			'ppe_appearance_section'
 		);
 
 		// Color Customization section (only for All mode).
@@ -136,11 +168,11 @@ class Settings {
 			'ppe_color_customization_section'
 		);
 
-		// Global Strings section.
+		// Messages Tab - Global Text Strings
 		add_settings_section(
-			'ppe_global_strings_section',
-			__( 'Global Text Strings', 'password-protect-elite' ),
-			array( $this, 'render_global_strings_section_description' ),
+			'ppe_messages_section',
+			__( 'Message Settings', 'password-protect-elite' ),
+			array( $this, 'render_messages_section_description' ),
 			self::PAGE_SLUG
 		);
 
@@ -154,16 +186,19 @@ class Settings {
 				$string_config['label'],
 				array( $this, 'render_string_field' ),
 				self::PAGE_SLUG,
-				'ppe_global_strings_section',
-				array( 'string_key' => $key, 'string_config' => $string_config )
+				'ppe_messages_section',
+				array(
+					'string_key'    => $key,
+					'string_config' => $string_config,
+				)
 			);
 		}
 
-		// Additional Settings section.
+		// Advanced Tab - Debug and Cache Settings
 		add_settings_section(
-			'ppe_additional_settings_section',
-			__( 'Additional Settings', 'password-protect-elite' ),
-			array( $this, 'render_additional_settings_section_description' ),
+			'ppe_advanced_section',
+			__( 'Advanced Settings', 'password-protect-elite' ),
+			array( $this, 'render_advanced_section_description' ),
 			self::PAGE_SLUG
 		);
 
@@ -172,7 +207,7 @@ class Settings {
 			__( 'Debug Mode', 'password-protect-elite' ),
 			array( $this, 'render_debug_mode_field' ),
 			self::PAGE_SLUG,
-			'ppe_additional_settings_section'
+			'ppe_advanced_section'
 		);
 
 		add_settings_field(
@@ -180,23 +215,7 @@ class Settings {
 			__( 'Auto Clear Cache', 'password-protect-elite' ),
 			array( $this, 'render_auto_clear_cache_field' ),
 			self::PAGE_SLUG,
-			'ppe_additional_settings_section'
-		);
-
-		add_settings_field(
-			'password_attempts_limit',
-			__( 'Password Attempts Limit', 'password-protect-elite' ),
-			array( $this, 'render_password_attempts_limit_field' ),
-			self::PAGE_SLUG,
-			'ppe_additional_settings_section'
-		);
-
-		add_settings_field(
-			'lockout_duration',
-			__( 'Lockout Duration (minutes)', 'password-protect-elite' ),
-			array( $this, 'render_lockout_duration_field' ),
-			self::PAGE_SLUG,
-			'ppe_additional_settings_section'
+			'ppe_advanced_section'
 		);
 	}
 
@@ -204,6 +223,17 @@ class Settings {
 	 * Render the settings page.
 	 */
 	public function render_settings_page() {
+		// Get current tab from URL parameter.
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'general';
+
+		// Define available tabs.
+		$tabs = array(
+			'general'    => __( 'General', 'password-protect-elite' ),
+			'appearance' => __( 'Appearance', 'password-protect-elite' ),
+			'messages'   => __( 'Messages', 'password-protect-elite' ),
+			'advanced'   => __( 'Advanced', 'password-protect-elite' ),
+		);
+
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -213,14 +243,89 @@ class Settings {
 			settings_errors( 'ppe_settings_messages' );
 			?>
 
+			<h2 class="nav-tab-wrapper">
+				<?php foreach ( $tabs as $tab_key => $tab_label ) : ?>
+					<a href="?post_type=ppe_password_group&page=<?php echo esc_attr( self::PAGE_SLUG ); ?>&tab=<?php echo esc_attr( $tab_key ); ?>"
+					   class="nav-tab <?php echo $current_tab === $tab_key ? 'nav-tab-active' : ''; ?>">
+						<?php echo esc_html( $tab_label ); ?>
+					</a>
+				<?php endforeach; ?>
+			</h2>
+
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( self::SETTINGS_GROUP );
-				do_settings_sections( self::PAGE_SLUG );
+
+				// Render tab content.
+				switch ( $current_tab ) {
+					case 'general':
+						$this->render_general_tab();
+						break;
+					case 'appearance':
+						$this->render_appearance_tab();
+						break;
+					case 'messages':
+						$this->render_messages_tab();
+						break;
+					case 'advanced':
+						$this->render_advanced_tab();
+						break;
+					default:
+						$this->render_general_tab();
+						break;
+				}
+
 				submit_button();
 				?>
 			</form>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Render general section description.
+	 */
+	public function render_general_section_description() {
+		echo '<p>' . esc_html__( 'Configure general security and session settings for password protection.', 'password-protect-elite' ) . '</p>';
+	}
+
+	/**
+	 * Render appearance section description.
+	 */
+	public function render_appearance_section_description() {
+		echo '<p>' . esc_html__( 'Configure the visual appearance and styling of password protection blocks.', 'password-protect-elite' ) . '</p>';
+	}
+
+	/**
+	 * Render messages section description.
+	 */
+	public function render_messages_section_description() {
+		echo '<p>' . esc_html__( 'Customize the default text strings used in the plugin blocks. These will be used as defaults when creating new blocks.', 'password-protect-elite' ) . '</p>';
+	}
+
+	/**
+	 * Render advanced section description.
+	 */
+	public function render_advanced_section_description() {
+		echo '<p>' . esc_html__( 'Advanced configuration options for debugging and performance.', 'password-protect-elite' ) . '</p>';
+	}
+
+	/**
+	 * Render session duration field.
+	 */
+	public function render_session_duration_field() {
+		$settings = get_option( self::SETTINGS_GROUP, array() );
+		$value    = isset( $settings['session_duration'] ) ? $settings['session_duration'] : 24;
+		?>
+		<input type="number"
+			name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[session_duration]"
+			id="session_duration"
+			value="<?php echo esc_attr( $value ); ?>"
+			min="1"
+			max="168"
+			class="small-text"
+		/>
+		<p class="description"><?php esc_html_e( 'How long a user session remains valid before requiring re-authentication (1-168 hours).', 'password-protect-elite' ); ?></p>
 		<?php
 	}
 
@@ -464,6 +569,179 @@ class Settings {
 	}
 
 	/**
+	 * Render general tab content.
+	 */
+	public function render_general_tab() {
+		?>
+		<div class="ppe-tab-content">
+			<?php $this->render_general_section_description(); ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="session_duration"><?php esc_html_e( 'Session Duration (hours)', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_session_duration_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="password_attempts_limit"><?php esc_html_e( 'Password Attempts Limit', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_password_attempts_limit_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="lockout_duration"><?php esc_html_e( 'Lockout Duration (minutes)', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_lockout_duration_field(); ?>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render appearance tab content.
+	 */
+	public function render_appearance_tab() {
+		?>
+		<div class="ppe-tab-content">
+			<?php $this->render_appearance_section_description(); ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="block_styles_mode"><?php esc_html_e( 'Block Styles Mode', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_block_styles_field(); ?>
+					</td>
+				</tr>
+			</table>
+
+			<?php $this->render_color_customization_section_description(); ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="primary_color"><?php esc_html_e( 'Primary Color', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_primary_color_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="primary_color_hover"><?php esc_html_e( 'Primary Color (Hover)', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_primary_color_hover_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="border_color"><?php esc_html_e( 'Border Color', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_border_color_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="background_color"><?php esc_html_e( 'Background Color', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_background_color_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="success_color"><?php esc_html_e( 'Success Message Color', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_success_color_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="error_color"><?php esc_html_e( 'Error Message Color', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_error_color_field(); ?>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render messages tab content.
+	 */
+	public function render_messages_tab() {
+		?>
+		<div class="ppe-tab-content">
+			<?php $this->render_messages_section_description(); ?>
+
+			<?php
+			// Render string fields.
+			$string_manager = new StringManager();
+			$customizable_strings = $string_manager->get_customizable_strings();
+			?>
+
+			<table class="form-table" role="presentation">
+				<?php foreach ( $customizable_strings as $key => $string_config ) : ?>
+					<tr>
+						<th scope="row">
+							<label for="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $string_config['label'] ); ?></label>
+						</th>
+						<td>
+							<?php $this->render_string_field( array( 'string_key' => $key, 'string_config' => $string_config ) ); ?>
+						</td>
+					</tr>
+				<?php endforeach; ?>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render advanced tab content.
+	 */
+	public function render_advanced_tab() {
+		?>
+		<div class="ppe-tab-content">
+			<?php $this->render_advanced_section_description(); ?>
+
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<label for="debug_mode"><?php esc_html_e( 'Debug Mode', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_debug_mode_field(); ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="auto_clear_cache"><?php esc_html_e( 'Auto Clear Cache', 'password-protect-elite' ); ?></label>
+					</th>
+					<td>
+						<?php $this->render_auto_clear_cache_field(); ?>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Sanitize settings data.
 	 *
 	 * @param array $input Raw input data.
@@ -514,8 +792,8 @@ class Settings {
 		}
 
 		// Sanitize additional settings.
-		$sanitized['debug_mode'] = isset( $input['debug_mode'] ) ? 1 : 0;
-		$sanitized['auto_clear_cache'] = isset( $input['auto_clear_cache'] ) ? 1 : 0;
+		$sanitized['debug_mode']        = isset( $input['debug_mode'] ) ? 1 : 0;
+		$sanitized['auto_clear_cache']  = isset( $input['auto_clear_cache'] ) ? 1 : 0;
 
 		if ( isset( $input['password_attempts_limit'] ) ) {
 			$sanitized['password_attempts_limit'] = max( 1, min( 20, absint( $input['password_attempts_limit'] ) ) );
@@ -523,6 +801,10 @@ class Settings {
 
 		if ( isset( $input['lockout_duration'] ) ) {
 			$sanitized['lockout_duration'] = max( 1, min( 1440, absint( $input['lockout_duration'] ) ) );
+		}
+
+		if ( isset( $input['session_duration'] ) ) {
+			$sanitized['session_duration'] = max( 1, min( 168, absint( $input['session_duration'] ) ) );
 		}
 
 		return $sanitized;

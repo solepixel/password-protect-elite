@@ -6,6 +6,51 @@
 	max-width: 800px;
 }
 
+/* Tab Navigation Styles */
+.nav-tab-wrapper {
+	margin-bottom: 20px;
+	border-bottom: 1px solid #ccd0d4;
+}
+
+.nav-tab {
+	background: #f1f1f1;
+	border: 1px solid #ccd0d4;
+	border-bottom: none;
+	color: #555;
+	text-decoration: none;
+	padding: 8px 12px;
+	margin-right: 5px;
+	border-radius: 4px 4px 0 0;
+	display: inline-block;
+	transition: all 0.2s ease;
+}
+
+.nav-tab:hover {
+	background: #f9f9f9;
+	color: #0073aa;
+}
+
+.nav-tab-active {
+	background: #fff;
+	border-bottom: 1px solid #fff;
+	color: #000;
+	font-weight: 600;
+}
+
+.nav-tab-active:hover {
+	background: #fff;
+	color: #000;
+}
+
+/* Tab Content */
+.ppe-tab-content {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-top: none;
+	padding: 20px;
+	border-radius: 0 0 4px 4px;
+}
+
 .ppe-settings-section {
 	margin-bottom: 30px;
 	padding: 20px;
