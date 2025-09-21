@@ -634,9 +634,12 @@ class Settings {
 				</tr>
 			</table>
 
-			<?php $this->render_color_customization_section_description(); ?>
+			<div id="ppe-color-desc" style="<?php $settings = get_option( self::SETTINGS_GROUP, array() ); echo ( isset( $settings['block_styles_mode'] ) && 'all' !== $settings['block_styles_mode'] ) ? 'display:none;' : ''; ?>">
+				<?php $this->render_color_customization_section_description(); ?>
+			</div>
 
 			<table class="form-table" role="presentation">
+				<tbody id="ppe-color-fields" style="<?php $settings = get_option( self::SETTINGS_GROUP, array() ); echo ( isset( $settings['block_styles_mode'] ) && 'all' !== $settings['block_styles_mode'] ) ? 'display:none;' : ''; ?>">
 				<tr>
 					<th scope="row">
 						<label for="primary_color"><?php esc_html_e( 'Primary Color', 'password-protect-elite' ); ?></label>
@@ -685,6 +688,7 @@ class Settings {
 						<?php $this->render_error_color_field(); ?>
 					</td>
 				</tr>
+				</tbody>
 			</table>
 		</div>
 		<?php

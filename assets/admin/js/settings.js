@@ -21,10 +21,23 @@
     });
 
     function toggleColorSection(mode) {
-        // Find the color customization section
-        var colorSection = $('h2:contains("Color Customization")').nextUntil('h2').addBack();
+        // Prefer explicit containers if present, otherwise fallback to heading heuristic.
+        var colorContainer = $('#ppe-color-fields');
+        var colorDesc = $('#ppe-color-desc');
+        if (colorContainer.length) {
+            if ((mode || '').toLowerCase() === 'all') {
+                colorContainer.show();
+                if (colorDesc.length) { colorDesc.show(); }
+            } else {
+                colorContainer.hide();
+                if (colorDesc.length) { colorDesc.hide(); }
+            }
+            return;
+        }
 
-        if (mode === 'all') {
+        // Fallback: Find the color customization section by heading.
+        var colorSection = $('h2:contains("Color Customization")').nextUntil('h2').addBack();
+        if ((mode || '').toLowerCase() === 'all') {
             colorSection.show();
         } else {
             colorSection.hide();

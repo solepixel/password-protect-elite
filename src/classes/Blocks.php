@@ -216,7 +216,11 @@ class Blocks {
 
 			// Add redirect link if redirect URL is available.
 			if ( ! empty( $final_redirect_url ) ) {
-				$output .= '<p><a href="' . esc_url( $final_redirect_url ) . '" class="ppe-redirect-link">' . esc_html__( 'Continue to protected content', 'password-protect-elite' ) . '</a></p>';
+				$link_text = $string_manager->get_string( 'continue_to_protected_content' );
+				if ( empty( $link_text ) ) {
+					$link_text = __( 'Continue to protected content', 'password-protect-elite' );
+				}
+				$output .= '<p><a href="' . esc_url( $final_redirect_url ) . '" class="ppe-redirect-link">' . esc_html( $link_text ) . '</a></p>';
 			}
 
 			$output .= '</div>';

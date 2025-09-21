@@ -89,6 +89,11 @@ class StringManager {
 				'default' => __( 'You must log in before accessing that page.', 'password-protect-elite' ),
 				'description' => __( 'Message shown when a user is redirected to a password form due to authentication requirements.', 'password-protect-elite' ),
 			),
+			'continue_to_protected_content' => array(
+				'label' => __( 'Continue Link Text', 'password-protect-elite' ),
+				'default' => __( 'Continue to protected content', 'password-protect-elite' ),
+				'description' => __( 'Link text shown when a user is already authenticated and can continue to the protected content.', 'password-protect-elite' ),
+			),
 		);
 	}
 
