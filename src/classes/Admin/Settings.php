@@ -859,6 +859,28 @@ class Settings {
 	}
 
 	/**
+	 * Get max failed password attempts before lockout.
+	 *
+	 * @return int
+	 */
+	public static function get_password_attempts_limit() {
+		$settings = get_option( self::SETTINGS_GROUP, array() );
+		$limit    = isset( $settings['password_attempts_limit'] ) ? absint( $settings['password_attempts_limit'] ) : 5;
+		return max( 1, min( 20, $limit ) );
+	}
+
+	/**
+	 * Get lockout duration in minutes.
+	 *
+	 * @return int
+	 */
+	public static function get_lockout_duration_minutes() {
+		$settings  = get_option( self::SETTINGS_GROUP, array() );
+		$duration  = isset( $settings['lockout_duration'] ) ? absint( $settings['lockout_duration'] ) : 15;
+		return max( 1, min( 1440, $duration ) );
+	}
+
+	/**
 	 * Enqueue admin scripts for settings page.
 	 *
 	 * @param string $hook The current admin page hook.

@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
 /**
  * Handles password validation and session management.
  */
@@ -68,25 +69,44 @@ class PasswordManager {
 	 */
 	public function ajax_validate_password() {
 		// Verify nonce.
-		if ( ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ?? '' ), 'ppe_validate_password' ) ) {
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'ppe_validate_password' ) ) {
 			wp_die( esc_html__( 'Security check failed', 'password-protect-elite' ) );
+		}
+
+		// Bot honeypot: silently fail and count as attempt if filled.
+		$honeypot = isset( $_POST['ppe_hp'] ) ? sanitize_text_field( trim( (string) wp_unslash( $_POST['ppe_hp'] ) ) ) : '';
+		$client_fingerprints = $this->get_client_fingerprints();
+
+		// Check lockout before doing any processing.
+		$lockout_data = $this->get_active_lockout( $client_fingerprints );
+		if ( $lockout_data ) {
+			$remaining_seconds = max( 0, (int) $lockout_data['expires_at'] - time() );
+			$remaining_minutes = (int) ceil( $remaining_seconds / 60 );
+			/* translators: %d is the remaining minutes until the lockout expires. */
+			wp_send_json_error( sprintf( __( 'Too many failed attempts. Try again in %d minute(s).', 'password-protect-elite' ), $remaining_minutes ) );
 		}
 
 		$password     = sanitize_text_field( wp_unslash( $_POST['password'] ?? '' ) );
 		$secure_data  = sanitize_text_field( wp_unslash( $_POST['ppe_secure_data'] ?? '' ) );
 
-		// Debug logging
+		// Debug logging.
 		$this->debug_log( 'Password received: ' . $password );
 		$this->debug_log( 'Secure data received: ' . $secure_data );
 
-		if ( empty( $password ) ) {
-			wp_send_json_error( __( 'Password is required', 'password-protect-elite' ) );
+		if ( empty( $password ) || '' !== $honeypot ) {
+			// Treat empty password or triggered honeypot as a failed attempt.
+			$this->record_failed_attempt( $client_fingerprints );
+			$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
+			/* translators: %s is a short message about remaining attempts before lockout. */
+			wp_send_json_error( $remaining ? sprintf( __( 'Password is required. %s', 'password-protect-elite' ), $remaining ) : __( 'Password is required', 'password-protect-elite' ) );
 		}
 
 		// Decrypt and validate secure form data.
 		$form_data = SecureData::validate_secure_form_data( $secure_data );
 		if ( false === $form_data ) {
-			$this->debug_log( 'Secure data validation failed' );
+			$this->debug_log( 'Secure data validation failed.' );
+			$this->record_failed_attempt( $client_fingerprints );
 			wp_send_json_error( __( 'Invalid form data', 'password-protect-elite' ) );
 		}
 
@@ -96,18 +116,18 @@ class PasswordManager {
 		$redirect_url   = $form_data['redirect_url'];
 		$allowed_groups = $form_data['allowed_groups'];
 
-		$this->debug_log( 'About to validate password "' . $password . '" with type "' . $type . '"' );
+		$this->debug_log( 'About to validate password "' . $password . '" with type "' . $type . '".' );
 
-		// Debug: Check what password groups are available
+		// Debug: Check what password groups are available.
 		$all_groups = Database::get_password_groups( $type );
 		$this->debug_log( 'Available password groups for type "' . $type . '": ' . print_r( $all_groups, true ) );
 
-		// Try to validate with the specified type first
+		// Try to validate with the specified type first.
 		$password_group = Database::validate_password( $password, $type );
 
-		// If no match found and type is 'content', also try 'general' type
-		if ( ! $password_group && $type === 'content' ) {
-			$this->debug_log( 'No match for content type, trying general type' );
+		// If no match found and type is 'content', also try 'general' type.
+		if ( ! $password_group && 'content' === $type ) {
+			$this->debug_log( 'No match for content type, trying general type.' );
 			$general_groups = Database::get_password_groups( 'general' );
 			$this->debug_log( 'Available general password groups: ' . print_r( $general_groups, true ) );
 			$password_group = Database::validate_password( $password, 'general' );
@@ -120,15 +140,19 @@ class PasswordManager {
 
 			// Validate that the password group is in the allowed groups.
 			if ( ! empty( $allowed_groups ) && ! in_array( $password_group->id, $allowed_groups, true ) ) {
-				$this->debug_log( 'Password group not in allowed groups' );
-				wp_send_json_error( __( 'Password not authorized for this form', 'password-protect-elite' ) );
+				$this->debug_log( 'Password group not in allowed groups.' );
+				$this->record_failed_attempt( $client_fingerprints );
+				$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
+				/* translators: %s is a short message about remaining attempts before lockout. */
+				wp_send_json_error( $remaining ? sprintf( __( 'Password not authorized for this form. %s', 'password-protect-elite' ), $remaining ) : __( 'Password not authorized for this form', 'password-protect-elite' ) );
 			}
 		} else {
-			$this->debug_log( 'No password group found for password "' . $password . '" and type "' . $type . '"' );
+			$this->debug_log( 'No password group found for password "' . $password . '" and type "' . $type . '".' );
 		}
 
 		if ( $password_group ) {
 			$this->store_validated_password( $password_group->id, $password );
+			$this->reset_failed_attempts( $client_fingerprints );
 
 			// Determine redirect URL.
 			$final_redirect = $this->get_redirect_url( $password_group, $redirect_url );
@@ -141,7 +165,15 @@ class PasswordManager {
 				)
 			);
 		} else {
-			wp_send_json_error( __( 'Invalid password', 'password-protect-elite' ) );
+			$this->record_failed_attempt( $client_fingerprints );
+			$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
+			if ( $this->get_active_lockout( $client_fingerprints ) ) {
+				$duration = \PasswordProtectElite\Admin\Settings::get_lockout_duration_minutes();
+				/* translators: %d is the number of minutes for the lockout duration. */
+				wp_send_json_error( sprintf( __( 'Too many failed attempts. You are locked out for %d minute(s).', 'password-protect-elite' ), $duration ) );
+			}
+			/* translators: %s is a short message about remaining attempts before lockout. */
+			wp_send_json_error( $remaining ? sprintf( __( 'Invalid password. %s', 'password-protect-elite' ), $remaining ) : __( 'Invalid password', 'password-protect-elite' ) );
 		}
 	}
 
@@ -255,6 +287,7 @@ class PasswordManager {
 		<form class="<?php echo esc_attr( $args['class'] ); ?>">
 			<?php wp_nonce_field( 'ppe_validate_password', 'ppe_nonce' ); ?>
 			<input type="hidden" name="ppe_secure_data" value="<?php echo esc_attr( $secure_data ); ?>">
+			<input type="text" name="ppe_hp" value="" autocomplete="off" tabindex="-1" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
 			<div class="ppe-error-message" style="display: none;"></div>
 			<input type="password" name="password" class="ppe-password-input" placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>" required>
 			<button type="submit" class="ppe-submit-button"><?php echo esc_html( $args['button_text'] ); ?></button>
@@ -293,6 +326,130 @@ class PasswordManager {
 		// Use a combination of password and a salt for session storage.
 		// This is different from database storage to add an extra layer of security.
 		return hash( 'sha256', $password . wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Get client IP address.
+	 *
+	 * @return string
+	 */
+	private function get_client_ip() {
+		$ip_keys = array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR' );
+		foreach ( $ip_keys as $key ) {
+			if ( ! empty( $_SERVER[ $key ] ) ) {
+				$ip = sanitize_text_field( wp_unslash( (string) $_SERVER[ $key ] ) );
+				// Handle comma-separated list from proxies.
+				if ( false !== strpos( $ip, ',' ) ) {
+					$parts = array_map( 'trim', explode( ',', $ip ) );
+					$ip    = $parts[0];
+				}
+				return $ip;
+			}
+		}
+		return '0.0.0.0';
+	}
+
+	/**
+	 * Build a set of client fingerprint hashes for tracking attempts.
+	 * Uses IP and IP+UA to resist simple cookie/incognito evasion.
+	 *
+	 * @return array
+	 */
+	private function get_client_fingerprints() {
+		$ip         = $this->get_client_ip();
+		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_USER_AGENT'] ) ) : '';
+		return array(
+			md5( 'ip:' . $ip ),
+			md5( 'ipua:' . $ip . '|' . $user_agent ),
+		);
+	}
+
+	/**
+	 * Check if there is an active lockout for any fingerprint.
+	 *
+	 * @param array $fingerprints Array of fingerprint hashes.
+	 * @return array|null Lockout data or null if none.
+	 */
+	private function get_active_lockout( array $fingerprints ) {
+		foreach ( $fingerprints as $fp ) {
+			$lock = get_transient( 'ppe_lockout_' . $fp );
+			if ( is_array( $lock ) && isset( $lock['expires_at'] ) && $lock['expires_at'] > time() ) {
+				return $lock;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Record a failed attempt and initiate lockout if limit reached.
+	 *
+	 * @param array $fingerprints Fingerprints to update.
+	 */
+	private function record_failed_attempt( array $fingerprints ) {
+		$limit   = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+		$minutes = \PasswordProtectElite\Admin\Settings::get_lockout_duration_minutes();
+		$expires = time() + ( $minutes * 60 );
+		$locked  = false;
+
+		foreach ( $fingerprints as $fp ) {
+			$key      = 'ppe_attempts_' . $fp;
+			$attempts = get_transient( $key );
+			if ( ! is_array( $attempts ) ) {
+				$attempts = array(
+					'count'    => 0,
+					'first_at' => time(),
+				);
+			}
+			++$attempts['count'];
+			// Keep attempts window within a day to avoid unbounded growth.
+			set_transient( $key, $attempts, DAY_IN_SECONDS );
+
+			if ( $attempts['count'] >= $limit ) {
+				set_transient( 'ppe_lockout_' . $fp, array( 'expires_at' => $expires ), ( $minutes * 60 ) + 60 );
+				delete_transient( $key );
+				$locked = true;
+			}
+		}
+
+		return $locked;
+	}
+
+	/**
+	 * Reset failed attempts counters after successful validation.
+	 *
+	 * @param array $fingerprints Fingerprints to clear.
+	 */
+	private function reset_failed_attempts( array $fingerprints ) {
+		foreach ( $fingerprints as $fp ) {
+			delete_transient( 'ppe_attempts_' . $fp );
+		}
+	}
+
+	/**
+	 * Get a human-friendly remaining attempts message.
+	 *
+	 * @param array $fingerprints Fingerprints to check.
+	 * @return string Empty string if not applicable.
+	 */
+	private function get_remaining_attempts_message( array $fingerprints ) {
+		$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+		$min_remaining = $limit;
+		foreach ( $fingerprints as $fp ) {
+			$attempts = get_transient( 'ppe_attempts_' . $fp );
+			$count    = is_array( $attempts ) && isset( $attempts['count'] ) ? (int) $attempts['count'] : 0;
+			$remaining = max( 0, $limit - $count );
+			$min_remaining = min( $min_remaining, $remaining );
+		}
+		if ( $min_remaining <= 2 && $min_remaining > 0 ) {
+			/* translators: %d is the number of remaining attempts before lockout. */
+			return sprintf( __( '%d attempt(s) remaining before temporary lockout.', 'password-protect-elite' ), $min_remaining );
+		}
+		if ( 0 === $min_remaining ) {
+			$minutes = \PasswordProtectElite\Admin\Settings::get_lockout_duration_minutes();
+			/* translators: %d is the number of minutes for the lockout duration. */
+			return sprintf( __( 'Too many failed attempts. You will be locked out for %d minute(s).', 'password-protect-elite' ), $minutes );
+		}
+		return '';
 	}
 
 	/**
@@ -351,6 +508,4 @@ class PasswordManager {
 		// Password not found in current group data.
 		return false;
 	}
-
 }
-
