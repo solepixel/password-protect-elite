@@ -80,6 +80,60 @@
             }
         });
 
+        // Handle unauthenticated behavior changes
+        $('#ppe_unauthenticated_behavior').on('change', function() {
+            var selectedBehavior = $(this).val();
+
+            // Hide all unauthenticated redirect fields
+            $('.ppe-unauthenticated-redirect-field').hide();
+
+            // Show relevant fields based on selection
+            if (selectedBehavior === 'redirect') {
+                $('.ppe-unauthenticated-redirect-type-field').show();
+                // Trigger the redirect type change to show the appropriate fields
+                $('#ppe_unauthenticated_redirect_type').trigger('change');
+            }
+        });
+
+        // Handle unauthenticated redirect type changes
+        $('#ppe_unauthenticated_redirect_type').on('change', function() {
+            var selectedType = $(this).val();
+
+            // Hide all unauthenticated redirect specific fields
+            $('.ppe-unauthenticated-redirect-page-field, .ppe-unauthenticated-redirect-custom-url-field').hide();
+
+            // Show relevant field based on selection
+            if (selectedType === 'page') {
+                $('.ppe-unauthenticated-redirect-page-field').show();
+            } else if (selectedType === 'custom_url') {
+                $('.ppe-unauthenticated-redirect-custom-url-field').show();
+            }
+        });
+
+        // Handle protection type changes
+        $('#ppe_protection_type').on('change', function() {
+            var selectedType = $(this).val();
+
+            // Reset all URL protection fields visibility
+            $('.ppe-url-protection-field').show();
+
+            // Hide fields based on protection type
+            if (selectedType === 'block') {
+                // Content Block Specific: Hide both Exclude URLs and Auto-Protect URLs
+                $('.ppe-exclude-urls-field, .ppe-auto-protect-urls-field').hide();
+            } else if (selectedType === 'global_site') {
+                // Global Site: Hide Auto-Protect URLs (not applicable for global protection)
+                $('.ppe-auto-protect-urls-field').hide();
+            }
+            // For 'general' and 'section' types, show all fields (default behavior)
+        });
+
+        // Initialize all fields on page load to set correct initial state
+        $('#ppe_redirect_type').trigger('change');
+        $('#ppe_unauthenticated_behavior').trigger('change');
+        $('#ppe_unauthenticated_redirect_type').trigger('change');
+        $('#ppe_protection_type').trigger('change');
+
         // Initialize remove button states
         $('.ppe-additional-password-item input').each(function() {
             var $item = $(this).closest('.ppe-additional-password-item');

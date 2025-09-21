@@ -119,6 +119,9 @@ class PasswordGroups {
 		$redirect_type        = get_post_meta( $post->ID, '_ppe_redirect_type', true );
 		$redirect_page_id     = get_post_meta( $post->ID, '_ppe_redirect_page_id', true );
 		$redirect_custom_url  = get_post_meta( $post->ID, '_ppe_redirect_custom_url', true );
+		$unauthenticated_behavior = get_post_meta( $post->ID, '_ppe_unauthenticated_behavior', true );
+		$unauthenticated_redirect_page_id = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_page_id', true );
+		$unauthenticated_redirect_custom_url = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_custom_url', true );
 		$exclude_urls         = get_post_meta( $post->ID, '_ppe_exclude_urls', true );
 		$auto_protect_urls    = get_post_meta( $post->ID, '_ppe_auto_protect_urls', true );
 
@@ -134,6 +137,11 @@ class PasswordGroups {
 		// Set default redirect type.
 		if ( empty( $redirect_type ) ) {
 			$redirect_type = 'none';
+		}
+
+		// Set default unauthenticated behavior.
+		if ( empty( $unauthenticated_behavior ) ) {
+			$unauthenticated_behavior = 'show_404';
 		}
 		?>
 		<table class="form-table">
@@ -161,72 +169,134 @@ class PasswordGroups {
 					<p class="description"><?php esc_html_e( 'Other passwords that grant access to this group.', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr>
-				<th scope="row"><label for="ppe_protection_type"><?php esc_html_e( 'Protection Type', 'password-protect-elite' ); ?></label></th>
+		</table>
+
+		<!-- Protection Type and URL Settings Section -->
+		<fieldset class="ppe-protection-type-section">
+			<legend><h3><?php esc_html_e( 'Protection Type & URL Settings', 'password-protect-elite' ); ?></h3></legend>
+			<p class="description"><?php esc_html_e( 'Configure how this password group protects content and which URLs are affected.', 'password-protect-elite' ); ?></p>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row"><label for="ppe_protection_type"><?php esc_html_e( 'Protection Type', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<select name="ppe_protection_type" id="ppe_protection_type">
+							<option value="global_site" <?php selected( $protection_type, 'global_site' ); ?>><?php esc_html_e( 'Global Site', 'password-protect-elite' ); ?></option>
+							<option value="general" <?php selected( $protection_type, 'general' ); ?>><?php esc_html_e( 'General (Pages/Sections & Blocks)', 'password-protect-elite' ); ?></option>
+							<option value="section" <?php selected( $protection_type, 'section' ); ?>><?php esc_html_e( 'Page/Section Specific', 'password-protect-elite' ); ?></option>
+							<option value="block" <?php selected( $protection_type, 'block' ); ?>><?php esc_html_e( 'Content Block Specific', 'password-protect-elite' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( 'Defines where this password group can be used.', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="ppe_redirect_type"><?php esc_html_e( 'Redirect Behavior', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<select name="ppe_redirect_type" id="ppe_redirect_type">
+							<option value="none" <?php selected( $redirect_type, 'none' ); ?>><?php esc_html_e( 'No Redirect (stay on current page)', 'password-protect-elite' ); ?></option>
+							<option value="page" <?php selected( $redirect_type, 'page' ); ?>><?php esc_html_e( 'Redirect to an existing Page', 'password-protect-elite' ); ?></option>
+							<option value="custom_url" <?php selected( $redirect_type, 'custom_url' ); ?>><?php esc_html_e( 'Redirect to a Custom URL', 'password-protect-elite' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( 'Choose where to redirect the user after successful password entry.', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr class="ppe-redirect-field ppe-redirect-page-field" style="<?php echo ( 'page' === $redirect_type ) ? '' : 'display:none;'; ?>">
+					<th scope="row"><label for="ppe_redirect_page_id"><?php esc_html_e( 'Select Page', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<?php
+						wp_dropdown_pages(
+							array(
+								'name'              => 'ppe_redirect_page_id',
+								'id'                => 'ppe_redirect_page_id',
+								'selected'          => $redirect_page_id,
+								'show_option_none'  => __( '— Select —', 'password-protect-elite' ),
+								'option_none_value' => 0,
+							)
+						);
+						?>
+						<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect to.', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr class="ppe-redirect-field ppe-redirect-custom-url-field" style="<?php echo ( 'custom_url' === $redirect_type ) ? '' : 'display:none;'; ?>">
+					<th scope="row"><label for="ppe_redirect_custom_url"><?php esc_html_e( 'Custom Redirect URL', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<input type="url" name="ppe_redirect_custom_url" id="ppe_redirect_custom_url" value="<?php echo esc_url( $redirect_custom_url ); ?>" class="regular-text">
+						<p class="description"><?php esc_html_e( 'Enter a full URL (e.g., https://example.com/thank-you).', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr class="ppe-url-protection-field ppe-exclude-urls-field" style="<?php echo ( 'block' === $protection_type ) ? 'display:none;' : ''; ?>">
+					<th scope="row"><label for="ppe_exclude_urls"><?php esc_html_e( 'Exclude URLs', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<textarea name="ppe_exclude_urls" id="ppe_exclude_urls" rows="4" cols="50" class="large-text"><?php echo esc_textarea( $exclude_urls ); ?></textarea>
+						<p class="description">
+							<?php esc_html_e( 'URLs to exclude from protection (one per line). Use * for wildcards, e.g., /some-url/* or /admin/*', 'password-protect-elite' ); ?>
+						</p>
+					</td>
+				</tr>
+				<tr class="ppe-url-protection-field ppe-auto-protect-urls-field" style="<?php echo ( 'global_site' === $protection_type || 'block' === $protection_type ) ? 'display:none;' : ''; ?>">
+					<th scope="row"><label for="ppe_auto_protect_urls"><?php esc_html_e( 'Auto-Protect URLs', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<textarea name="ppe_auto_protect_urls" id="ppe_auto_protect_urls" rows="4" cols="50" class="large-text"><?php echo esc_textarea( $auto_protect_urls ); ?></textarea>
+						<p class="description">
+							<?php esc_html_e( 'URLs to automatically protect with this password group (one per line). Use * for wildcards, e.g., /sub-page1/* or /private/*', 'password-protect-elite' ); ?>
+						</p>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+
+		<!-- Unauthenticated Access Behavior Section -->
+		<fieldset class="ppe-unauthenticated-behavior-section">
+			<legend><h3><?php esc_html_e( 'Unauthenticated Access Behavior', 'password-protect-elite' ); ?></h3></legend>
+			<p class="description"><?php esc_html_e( 'Configure what happens when users try to access protected content without authentication.', 'password-protect-elite' ); ?></p>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row"><label for="ppe_unauthenticated_behavior"><?php esc_html_e( 'Behavior', 'password-protect-elite' ); ?></label></th>
 				<td>
-					<select name="ppe_protection_type" id="ppe_protection_type">
-						<option value="global_site" <?php selected( $protection_type, 'global_site' ); ?>><?php esc_html_e( 'Global Site', 'password-protect-elite' ); ?></option>
-						<option value="general" <?php selected( $protection_type, 'general' ); ?>><?php esc_html_e( 'General (Pages/Sections & Blocks)', 'password-protect-elite' ); ?></option>
-						<option value="section" <?php selected( $protection_type, 'section' ); ?>><?php esc_html_e( 'Page/Section Specific', 'password-protect-elite' ); ?></option>
-						<option value="block" <?php selected( $protection_type, 'block' ); ?>><?php esc_html_e( 'Content Block Specific', 'password-protect-elite' ); ?></option>
+					<select name="ppe_unauthenticated_behavior" id="ppe_unauthenticated_behavior">
+						<option value="show_404" <?php selected( $unauthenticated_behavior, 'show_404' ); ?>><?php esc_html_e( 'Display 404 (Default)', 'password-protect-elite' ); ?></option>
+						<option value="redirect" <?php selected( $unauthenticated_behavior, 'redirect' ); ?>><?php esc_html_e( 'Redirect to another page/URL', 'password-protect-elite' ); ?></option>
+						<option value="show_dialog" <?php selected( $unauthenticated_behavior, 'show_dialog' ); ?>><?php esc_html_e( 'Render password prompt dialog', 'password-protect-elite' ); ?></option>
 					</select>
-					<p class="description"><?php esc_html_e( 'Defines where this password group can be used.', 'password-protect-elite' ); ?></p>
+					<p class="description"><?php esc_html_e( 'What happens when an unauthenticated user tries to access protected content.', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr>
-				<th scope="row"><label for="ppe_redirect_type"><?php esc_html_e( 'Redirect Behavior', 'password-protect-elite' ); ?></label></th>
+			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-type-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior ) ? '' : 'display:none !important;'; ?>">
+				<th scope="row"><label for="ppe_unauthenticated_redirect_type"><?php esc_html_e( 'Redirect Type', 'password-protect-elite' ); ?></label></th>
 				<td>
-					<select name="ppe_redirect_type" id="ppe_redirect_type">
-						<option value="none" <?php selected( $redirect_type, 'none' ); ?>><?php esc_html_e( 'No Redirect (stay on current page)', 'password-protect-elite' ); ?></option>
-						<option value="page" <?php selected( $redirect_type, 'page' ); ?>><?php esc_html_e( 'Redirect to an existing Page', 'password-protect-elite' ); ?></option>
-						<option value="custom_url" <?php selected( $redirect_type, 'custom_url' ); ?>><?php esc_html_e( 'Redirect to a Custom URL', 'password-protect-elite' ); ?></option>
+					<select name="ppe_unauthenticated_redirect_type" id="ppe_unauthenticated_redirect_type">
+						<option value="page"><?php esc_html_e( 'Redirect to an existing Page', 'password-protect-elite' ); ?></option>
+						<option value="custom_url"><?php esc_html_e( 'Redirect to a Custom URL', 'password-protect-elite' ); ?></option>
 					</select>
-					<p class="description"><?php esc_html_e( 'Choose where to redirect the user after successful password entry.', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr class="ppe-redirect-field ppe-redirect-page-field" style="<?php echo ( 'page' === $redirect_type ) ? '' : 'display:none;'; ?>">
-				<th scope="row"><label for="ppe_redirect_page_id"><?php esc_html_e( 'Select Page', 'password-protect-elite' ); ?></label></th>
+			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-page-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior ) ? '' : 'display:none !important;'; ?>">
+				<th scope="row"><label for="ppe_unauthenticated_redirect_page_id"><?php esc_html_e( 'Select Page', 'password-protect-elite' ); ?></label></th>
 				<td>
 					<?php
 					wp_dropdown_pages(
 						array(
-							'name'              => 'ppe_redirect_page_id',
-							'id'                => 'ppe_redirect_page_id',
-							'selected'          => $redirect_page_id,
+							'name'              => 'ppe_unauthenticated_redirect_page_id',
+							'id'                => 'ppe_unauthenticated_redirect_page_id',
+							'selected'          => $unauthenticated_redirect_page_id,
 							'show_option_none'  => __( '— Select —', 'password-protect-elite' ),
 							'option_none_value' => 0,
 						)
 					);
 					?>
-					<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect to.', 'password-protect-elite' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect unauthenticated users to.', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr class="ppe-redirect-field ppe-redirect-custom-url-field" style="<?php echo ( 'custom_url' === $redirect_type ) ? '' : 'display:none;'; ?>">
-				<th scope="row"><label for="ppe_redirect_custom_url"><?php esc_html_e( 'Custom Redirect URL', 'password-protect-elite' ); ?></label></th>
+			<tr class="ppe-unauthenticated-redirect-field ppe-unauthenticated-redirect-custom-url-field" style="<?php echo ( 'redirect' === $unauthenticated_behavior ) ? '' : 'display:none !important;'; ?>">
+				<th scope="row"><label for="ppe_unauthenticated_redirect_custom_url"><?php esc_html_e( 'Custom Redirect URL', 'password-protect-elite' ); ?></label></th>
 				<td>
-					<input type="url" name="ppe_redirect_custom_url" id="ppe_redirect_custom_url" value="<?php echo esc_url( $redirect_custom_url ); ?>" class="regular-text">
-					<p class="description"><?php esc_html_e( 'Enter a full URL (e.g., https://example.com/thank-you).', 'password-protect-elite' ); ?></p>
+					<input type="url" name="ppe_unauthenticated_redirect_custom_url" id="ppe_unauthenticated_redirect_custom_url" value="<?php echo esc_url( $unauthenticated_redirect_custom_url ); ?>" class="regular-text">
+					<p class="description"><?php esc_html_e( 'Enter a full URL for unauthenticated users (e.g., https://example.com/login).', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr>
-				<th scope="row"><label for="ppe_exclude_urls"><?php esc_html_e( 'Exclude URLs', 'password-protect-elite' ); ?></label></th>
-				<td>
-					<textarea name="ppe_exclude_urls" id="ppe_exclude_urls" rows="4" cols="50" class="large-text"><?php echo esc_textarea( $exclude_urls ); ?></textarea>
-					<p class="description">
-						<?php esc_html_e( 'URLs to exclude from protection (one per line). Use * for wildcards, e.g., /some-url/* or /admin/*', 'password-protect-elite' ); ?>
-					</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="ppe_auto_protect_urls"><?php esc_html_e( 'Auto-Protect URLs', 'password-protect-elite' ); ?></label></th>
-				<td>
-					<textarea name="ppe_auto_protect_urls" id="ppe_auto_protect_urls" rows="4" cols="50" class="large-text"><?php echo esc_textarea( $auto_protect_urls ); ?></textarea>
-					<p class="description">
-						<?php esc_html_e( 'URLs to automatically protect with this password group (one per line). Use * for wildcards, e.g., /sub-page1/* or /private/*', 'password-protect-elite' ); ?>
-					</p>
-				</td>
-			</tr>
-		</table>
+			</table>
+		</fieldset>
 		<?php
 	}
 
@@ -289,6 +359,25 @@ class PasswordGroups {
 			} else {
 				delete_post_meta( $post_id, '_ppe_redirect_page_id' );
 				delete_post_meta( $post_id, '_ppe_redirect_custom_url' );
+			}
+		}
+
+		// Sanitize and save unauthenticated behavior.
+		if ( isset( $_POST['ppe_unauthenticated_behavior'] ) ) {
+			$unauthenticated_behavior = sanitize_text_field( wp_unslash( $_POST['ppe_unauthenticated_behavior'] ) );
+			update_post_meta( $post_id, '_ppe_unauthenticated_behavior', $unauthenticated_behavior );
+
+			// Save unauthenticated redirect settings based on behavior.
+			if ( 'redirect' === $unauthenticated_behavior ) {
+				if ( isset( $_POST['ppe_unauthenticated_redirect_page_id'] ) ) {
+					update_post_meta( $post_id, '_ppe_unauthenticated_redirect_page_id', absint( wp_unslash( $_POST['ppe_unauthenticated_redirect_page_id'] ) ) );
+				}
+				if ( isset( $_POST['ppe_unauthenticated_redirect_custom_url'] ) ) {
+					update_post_meta( $post_id, '_ppe_unauthenticated_redirect_custom_url', esc_url_raw( wp_unslash( $_POST['ppe_unauthenticated_redirect_custom_url'] ) ) );
+				}
+			} else {
+				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_page_id' );
+				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_custom_url' );
 			}
 		}
 
