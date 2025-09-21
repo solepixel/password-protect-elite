@@ -5,7 +5,8 @@
 	"main": "password-protect-elite.php",
 	"type": "module",
 	"scripts": {
-		"build": "wp-scripts build",
+		"build": "wp-scripts build && npm run clean-build-blocks",
+		"clean-build-blocks": "rm -rf build/blocks",
 		"start": "wp-scripts start",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",

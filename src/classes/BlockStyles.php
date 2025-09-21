@@ -54,14 +54,14 @@ class BlockStyles {
 		// Always load editor styles for proper block editing experience
 		wp_enqueue_style(
 			'ppe-blocks-editor',
-			PPE_PLUGIN_URL . 'build/blocks/password-entry/editor.css',
+			PPE_PLUGIN_URL . 'src/blocks/password-entry/editor.css',
 			array(),
 			PPE_VERSION
 		);
 
 		wp_enqueue_style(
 			'ppe-protected-content-editor',
-			PPE_PLUGIN_URL . 'build/blocks/protected-content/editor.css',
+			PPE_PLUGIN_URL . 'src/blocks/protected-content/editor.css',
 			array(),
 			PPE_VERSION
 		);
