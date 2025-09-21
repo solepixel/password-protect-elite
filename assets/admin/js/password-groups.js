@@ -98,6 +98,13 @@
         // Handle unauthenticated redirect type changes
         $('#ppe_unauthenticated_redirect_type').on('change', function() {
             var selectedType = $(this).val();
+            var selectedBehavior = $('#ppe_unauthenticated_behavior').val();
+
+            // If behavior is not redirect, ensure redirect-specific fields are hidden and exit.
+            if (selectedBehavior !== 'redirect') {
+                $('.ppe-unauthenticated-redirect-page-field, .ppe-unauthenticated-redirect-custom-url-field').hide();
+                return;
+            }
 
             // Hide all unauthenticated redirect specific fields
             $('.ppe-unauthenticated-redirect-page-field, .ppe-unauthenticated-redirect-custom-url-field').hide();
@@ -131,7 +138,6 @@
         // Initialize all fields on page load to set correct initial state
         $('#ppe_redirect_type').trigger('change');
         $('#ppe_unauthenticated_behavior').trigger('change');
-        $('#ppe_unauthenticated_redirect_type').trigger('change');
         $('#ppe_protection_type').trigger('change');
 
         // Initialize remove button states
