@@ -57,6 +57,28 @@ class PageProtection {
 		$current_protection = Database::get_page_protection( $post->ID );
 		$current_group_id   = $current_protection ? $current_protection->password_group_id : 0;
 
+		// Determine if this page should be considered protected via auto-protect rules for its FRONT-END permalink,
+		// respecting each candidate group's own Exclude URLs.
+		$auto_protect_group = null;
+		if ( ! $current_protection ) {
+			$all_groups = Database::get_password_groups();
+			$page_url  = get_permalink( $post->ID );
+			foreach ( $all_groups as $group ) {
+				$auto_patterns = get_post_meta( $group->id, '_ppe_auto_protect_urls', true );
+				if ( empty( $auto_patterns ) ) {
+					continue;
+				}
+				if ( UrlMatcher::url_matches_patterns( $page_url, $auto_patterns ) ) {
+					$group_exclude_urls = get_post_meta( $group->id, '_ppe_exclude_urls', true );
+					if ( ! empty( $group_exclude_urls ) && UrlMatcher::url_matches_patterns( $page_url, $group_exclude_urls ) ) {
+						continue; // Excluded for this group.
+					}
+					$auto_protect_group = $group;
+					break;
+				}
+			}
+		}
+
 		// Get available password groups (both section and general types).
 		$section_groups  = Database::get_password_groups( 'section' );
 		$general_groups  = Database::get_password_groups( 'general' );
@@ -71,7 +93,12 @@ class PageProtection {
 			</p>
 
 			<select id="ppe-protection-group" name="ppe_protection_group" class="ppe-protection-select">
-				<option value=""><?php esc_html_e( 'No protection', 'password-protect-elite' ); ?></option>
+				<?php
+					$empty_option_label = ( ! $current_protection && $auto_protect_group )
+						? __( 'Auto Protection', 'password-protect-elite' )
+						: __( 'No protection', 'password-protect-elite' );
+				?>
+				<option value="" <?php selected( $current_group_id, 0 ); ?>><?php echo esc_html( $empty_option_label ); ?></option>
 				<?php foreach ( $password_groups as $group ) : ?>
 					<option value="<?php echo esc_attr( $group->id ); ?>" <?php selected( $current_group_id, $group->id ); ?>>
 						<?php echo esc_html( $group->name ); ?>
@@ -93,19 +120,14 @@ class PageProtection {
 				</p>
 			<?php endif; ?>
 
-			<?php if ( $current_protection ) : ?>
+			<?php if ( $current_protection || $auto_protect_group ) : ?>
 				<div class="ppe-current-protection">
 					<p>
 						<strong><?php esc_html_e( 'Current protection:', 'password-protect-elite' ); ?></strong><br>
-						<?php echo esc_html( $current_protection->group_name ); ?>
+						<?php echo esc_html( $current_protection ? $current_protection->group_name : $auto_protect_group->name ); ?>
 					</p>
-					<?php if ( ! empty( $current_protection->redirect_url ) ) : ?>
-						<p>
-							<strong><?php esc_html_e( 'Redirect URL:', 'password-protect-elite' ); ?></strong><br>
-							<a href="<?php echo esc_url( $current_protection->redirect_url ); ?>" target="_blank">
-								<?php echo esc_html( $current_protection->redirect_url ); ?>
-							</a>
-						</p>
+					<?php if ( ! $current_protection && $auto_protect_group ) : ?>
+						<p><em><?php esc_html_e( 'This page is auto-protected via URL rules.', 'password-protect-elite' ); ?></em></p>
 					<?php endif; ?>
 				</div>
 			<?php endif; ?>
