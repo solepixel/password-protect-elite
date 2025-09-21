@@ -1,0 +1,96 @@
+/**
+ * Settings page styles.
+ */
+
+.ppe-settings-page {
+	max-width: 800px;
+}
+
+.ppe-settings-section {
+	margin-bottom: 30px;
+	padding: 20px;
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	border-radius: 4px;
+}
+
+.ppe-settings-section h2 {
+	margin-top: 0;
+	color: #23282d;
+}
+
+.ppe-settings-section p {
+	color: #646970;
+}
+
+.ppe-string-field {
+	margin-bottom: 20px;
+}
+
+.ppe-string-field label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.ppe-string-field input[type="text"] {
+	width: 100%;
+	max-width: 500px;
+}
+
+.ppe-string-field .description {
+	margin-top: 5px;
+	font-style: italic;
+	color: #646970;
+}
+
+.ppe-additional-settings {
+	background: #f8f9fa;
+	border-left: 4px solid #0073aa;
+}
+
+.ppe-debug-warning {
+	background: #fff3cd;
+	border: 1px solid #ffeaa7;
+	border-radius: 4px;
+	padding: 10px;
+	margin: 10px 0;
+}
+
+.ppe-debug-warning strong {
+	color: #856404;
+}
+
+.ppe-settings-help {
+	background: #e7f3ff;
+	border: 1px solid #b3d9ff;
+	border-radius: 4px;
+	padding: 15px;
+	margin: 20px 0;
+}
+
+.ppe-settings-help h4 {
+	margin-top: 0;
+	color: #0073aa;
+}
+
+.ppe-reset-strings {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid #ddd;
+}
+
+.ppe-reset-strings .button {
+	margin-right: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 782px) {
+	.ppe-settings-section {
+		padding: 15px;
+	}
+
+	.ppe-string-field input[type="text"] {
+		max-width: 100%;
+	}
+}

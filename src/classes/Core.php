@@ -34,6 +34,13 @@ class Core {
 	public ?Admin\Help $admin_help = null;
 
 	/**
+	 * Admin Settings functionality
+	 *
+	 * @var ?Admin\Settings
+	 */
+	public ?Admin\Settings $admin_settings = null;
+
+	/**
 	 * Password Manager
 	 *
 	 * @var ?PasswordManager
@@ -83,12 +90,20 @@ class Core {
 	public ?UrlMatcher $url_matcher = null;
 
 	/**
+	 * Block Styles functionality
+	 *
+	 * @var ?BlockStyles
+	 */
+	public ?BlockStyles $block_styles = null;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		// Initialize components.
 		$this->admin            = new Admin\Admin();
 		$this->admin_help       = new Admin\Help();
+		$this->admin_settings   = new Admin\Settings();
 		$this->password_manager = new PasswordManager();
 		$this->database         = new Database();
 		$this->password_groups  = new PasswordGroups();
@@ -96,6 +111,7 @@ class Core {
 		$this->frontend         = new Frontend();
 		$this->page_protection  = new PageProtection();
 		$this->url_matcher      = new UrlMatcher();
+		$this->block_styles     = new BlockStyles();
 	}
 
 	/**

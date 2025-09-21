@@ -1,0 +1,85 @@
+/**
+ * Essential styles for Password Protect Elite blocks.
+ * These styles provide basic layout without colors, borders, or visual styling.
+ *
+ * MODE: Essential - Only layout styles, no visual styling
+ * - No colors, borders, or backgrounds
+ * - Only flexbox layout and spacing
+ * - Form elements have basic padding but no styling
+ */
+
+/* Password Entry Block - Essential Styles */
+.ppe-password-entry-block {
+	margin: 20px 0;
+}
+
+.ppe-password-form {
+	display: flex;
+	flex-direction: column;
+}
+
+.ppe-password-form .ppe-form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.ppe-password-form .ppe-password-input {
+	/* No border, background, or color styling */
+}
+
+.ppe-password-form .ppe-submit-button {
+	cursor: pointer;
+	/* No background, border, or color styling */
+}
+
+.ppe-password-form .ppe-message {
+	margin-top: 10px;
+	padding: 10px;
+	font-size: 14px;
+	/* No background, border, or color styling */
+}
+
+/* Protected Content Block - Essential Styles */
+.ppe-protected-content-block {
+	margin: 20px 0;
+}
+
+.ppe-protected-content-block.ppe-locked {
+	position: relative;
+	padding: 20px;
+	/* No background, border, or box-shadow styling */
+}
+
+.ppe-protected-message {
+	/* No background, border, or color styling */
+}
+
+.ppe-protected-content-block.ppe-locked .ppe-password-form {
+	margin-top: 0;
+	padding: 0;
+	/* No background, border, or box-shadow styling */
+}
+
+.ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-password-input {
+	/* No border, background, or color styling */
+}
+
+.ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-submit-button {
+	cursor: pointer;
+	/* No background, border, or color styling */
+}
+
+.ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-message {
+	margin-top: 10px;
+	padding: 10px;
+	font-size: 14px;
+	/* No background, border, or color styling */
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+	.ppe-password-form {
+		max-width: 100%;
+	}
+}

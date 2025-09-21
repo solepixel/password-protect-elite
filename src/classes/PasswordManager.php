@@ -34,6 +34,27 @@ class PasswordManager {
 	}
 
 	/**
+	 * Check if debug mode is enabled.
+	 *
+	 * @return bool
+	 */
+	private function is_debug_mode_enabled() {
+		$settings = get_option( 'ppe_settings', array() );
+		return isset( $settings['debug_mode'] ) && $settings['debug_mode'];
+	}
+
+	/**
+	 * Log debug message if debug mode is enabled.
+	 *
+	 * @param string $message Debug message.
+	 */
+	private function debug_log( $message ) {
+		if ( $this->is_debug_mode_enabled() ) {
+			error_log( 'PPE Debug: ' . $message );
+		}
+	}
+
+	/**
 	 * Initialize session handling.
 	 */
 	public function init_session() {
@@ -52,14 +73,59 @@ class PasswordManager {
 		}
 
 		$password     = sanitize_text_field( wp_unslash( $_POST['password'] ?? '' ) );
-		$type         = sanitize_text_field( wp_unslash( $_POST['type'] ?? '' ) );
-		$redirect_url = sanitize_url( wp_unslash( $_POST['redirect_url'] ?? '' ) );
+		$secure_data  = sanitize_text_field( wp_unslash( $_POST['ppe_secure_data'] ?? '' ) );
+
+		// Debug logging
+		$this->debug_log( 'Password received: ' . $password );
+		$this->debug_log( 'Secure data received: ' . $secure_data );
 
 		if ( empty( $password ) ) {
 			wp_send_json_error( __( 'Password is required', 'password-protect-elite' ) );
 		}
 
+		// Decrypt and validate secure form data.
+		$form_data = SecureData::validate_secure_form_data( $secure_data );
+		if ( false === $form_data ) {
+			$this->debug_log( 'Secure data validation failed' );
+			wp_send_json_error( __( 'Invalid form data', 'password-protect-elite' ) );
+		}
+
+		$this->debug_log( 'Form data validated: ' . print_r( $form_data, true ) );
+
+		$type           = $form_data['type'];
+		$redirect_url   = $form_data['redirect_url'];
+		$allowed_groups = $form_data['allowed_groups'];
+
+		$this->debug_log( 'About to validate password "' . $password . '" with type "' . $type . '"' );
+
+		// Debug: Check what password groups are available
+		$all_groups = Database::get_password_groups( $type );
+		$this->debug_log( 'Available password groups for type "' . $type . '": ' . print_r( $all_groups, true ) );
+
+		// Try to validate with the specified type first
 		$password_group = Database::validate_password( $password, $type );
+
+		// If no match found and type is 'content', also try 'general' type
+		if ( ! $password_group && $type === 'content' ) {
+			$this->debug_log( 'No match for content type, trying general type' );
+			$general_groups = Database::get_password_groups( 'general' );
+			$this->debug_log( 'Available general password groups: ' . print_r( $general_groups, true ) );
+			$password_group = Database::validate_password( $password, 'general' );
+		}
+		$this->debug_log( 'Password validation result: ' . ( $password_group ? 'SUCCESS' : 'FAILED' ) );
+
+		if ( $password_group ) {
+			$this->debug_log( 'Password group found: ' . print_r( $password_group, true ) );
+			$this->debug_log( 'Allowed groups: ' . print_r( $allowed_groups, true ) );
+
+			// Validate that the password group is in the allowed groups.
+			if ( ! empty( $allowed_groups ) && ! in_array( $password_group->id, $allowed_groups, true ) ) {
+				$this->debug_log( 'Password group not in allowed groups' );
+				wp_send_json_error( __( 'Password not authorized for this form', 'password-protect-elite' ) );
+			}
+		} else {
+			$this->debug_log( 'No password group found for password "' . $password . '" and type "' . $type . '"' );
+		}
 
 		if ( $password_group ) {
 			$this->store_validated_password( $password_group->id );
@@ -144,10 +210,17 @@ class PasswordManager {
 
 		$args = wp_parse_args( $args, $defaults );
 
+		// Create secure encrypted form data.
+		$secure_data = SecureData::create_secure_form_data( $args );
+		if ( false === $secure_data ) {
+			wp_die( 'Failed to create secure form data' );
+		}
+
 		ob_start();
 		?>
-		<form class="<?php echo esc_attr( $args['class'] ); ?>" data-type="<?php echo esc_attr( $args['type'] ); ?>" data-allowed-groups="<?php echo esc_attr( wp_json_encode( $args['allowed_groups'] ) ); ?>" data-redirect-url="<?php echo esc_attr( $args['redirect_url'] ); ?>">
+		<form class="<?php echo esc_attr( $args['class'] ); ?>">
 			<?php wp_nonce_field( 'ppe_validate_password', 'ppe_nonce' ); ?>
+			<input type="hidden" name="ppe_secure_data" value="<?php echo esc_attr( $secure_data ); ?>">
 			<input type="password" name="password" class="ppe-password-input" placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>" required>
 			<button type="submit" class="ppe-submit-button"><?php echo esc_html( $args['button_text'] ); ?></button>
 			<div class="ppe-error-message" style="display: none;"></div>
@@ -175,4 +248,6 @@ class PasswordManager {
 
 		return false;
 	}
+
 }
+

@@ -264,7 +264,7 @@ class PageProtection {
 
 		// Enqueue necessary scripts.
 		wp_enqueue_script( 'ppe-frontend' );
-		wp_enqueue_style( 'ppe-blocks' );
+		// Note: Block styles are now handled by the BlockStyles class
 
 		// Get redirect URL.
 		$redirect_url = ! empty( $password_group->redirect_url ) ? $password_group->redirect_url : get_permalink();

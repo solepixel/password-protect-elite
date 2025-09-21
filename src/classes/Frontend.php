@@ -131,7 +131,7 @@ class Frontend {
 
 		// Enqueue necessary scripts.
 		wp_enqueue_script( 'ppe-frontend' );
-		wp_enqueue_style( 'ppe-blocks' );
+		// Note: Block styles are now handled by the BlockStyles class
 
 		// Get redirect URL from group settings.
 		$redirect_url = $this->get_redirect_url( $group );
@@ -296,7 +296,7 @@ class Frontend {
 
 		// Enqueue necessary scripts.
 		wp_enqueue_script( 'ppe-frontend' );
-		wp_enqueue_style( 'ppe-blocks' );
+		// Note: Block styles are now handled by the BlockStyles class
 
 		// Get redirect URL from group settings.
 		$redirect_url = $this->get_redirect_url( $group );

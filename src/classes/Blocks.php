@@ -102,9 +102,14 @@ class Blocks {
 		}
 
 
+		// Get global strings for localization.
+		$string_manager = new \PasswordProtectElite\Admin\StringManager();
+		$global_strings = $string_manager->get_all_strings();
+
 		// Localize scripts with password groups for the block editor.
 		$localization_data = array(
 			'passwordGroups' => $groups_data,
+			'globalStrings' => $global_strings,
 			'strings'        => array(
 				'passwordEntry'        => __( 'Password Entry', 'password-protect-elite' ),
 				'protectedContent'     => __( 'Protected Content', 'password-protect-elite' ),
@@ -133,12 +138,12 @@ class Blocks {
 			true
 		);
 
-		wp_enqueue_style(
-			'ppe-blocks',
-			PPE_PLUGIN_URL . 'assets/css/blocks.css',
-			array(),
-			PPE_VERSION
-		);
+		// Note: Block styles are now handled by the BlockStyles class
+		// based on the user's settings preference
+
+		// Get debug mode setting
+		$settings = get_option( 'ppe_settings', array() );
+		$debug_mode = isset( $settings['debug_mode'] ) && $settings['debug_mode'];
 
 		wp_localize_script(
 			'ppe-frontend',
@@ -146,6 +151,7 @@ class Blocks {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'ppe_validate_password' ),
+				'debugMode' => $debug_mode,
 				'strings' => array(
 					'passwordRequired' => __( 'Password is required', 'password-protect-elite' ),
 					'invalidPassword'  => __( 'Invalid password', 'password-protect-elite' ),
@@ -167,8 +173,11 @@ class Blocks {
 		// Content parameter is not used for this block type.
 		unset( $content );
 		$allowed_groups = $attributes['allowedGroups'] ?? array();
-		$button_text    = $attributes['buttonText'] ?? __( 'Submit', 'password-protect-elite' );
-		$placeholder    = $attributes['placeholder'] ?? __( 'Enter password', 'password-protect-elite' );
+
+		// Get global strings for defaults.
+		$string_manager = new \PasswordProtectElite\Admin\StringManager();
+		$button_text    = $attributes['buttonText'] ?? $string_manager->get_string( 'default_button_text' );
+		$placeholder    = $attributes['placeholder'] ?? $string_manager->get_string( 'default_placeholder' );
 		$redirect_url   = $attributes['redirectUrl'] ?? '';
 		$class_name     = $attributes['className'] ?? '';
 
@@ -204,7 +213,10 @@ class Blocks {
 	 */
 	public function render_protected_content_block( $attributes, $content ) {
 		$allowed_groups   = $attributes['allowedGroups'] ?? array();
-		$fallback_message = $attributes['fallbackMessage'] ?? __( 'This content is password protected.', 'password-protect-elite' );
+
+		// Get global strings for defaults.
+		$string_manager = new \PasswordProtectElite\Admin\StringManager();
+		$fallback_message = $attributes['fallbackMessage'] ?? $string_manager->get_string( 'default_fallback_message' );
 		$class_name       = $attributes['className'] ?? '';
 
 		// If no groups are selected, allow all content-type and general groups.
@@ -226,8 +238,8 @@ class Blocks {
 				'type'           => 'content',
 				'allowed_groups' => $allowed_groups,
 				'redirect_url'   => '',
-				'button_text'    => __( 'Unlock Content', 'password-protect-elite' ),
-				'placeholder'    => __( 'Enter password to view content', 'password-protect-elite' ),
+				'button_text'    => $string_manager->get_string( 'default_button_text' ),
+				'placeholder'    => $string_manager->get_string( 'default_placeholder' ),
 				'class'          => 'ppe-password-form ppe-protected-content-form',
 			);
 

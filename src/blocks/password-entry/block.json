@@ -10,8 +10,6 @@
 	"keywords": ["password", "form", "protection", "security", "login", "authentication"],
 	"textdomain": "password-protect-elite",
 	"editorStyle": "file:./editor.css",
-	"style": "file:./style.css",
-	"render": "file:./render.php",
 	"attributes": {
 		"allowedGroups": {
 			"type": "array",

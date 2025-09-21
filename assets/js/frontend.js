@@ -46,15 +46,26 @@
             form.addClass('ppe-loading');
             errorMessage.hide();
 
+            // Get secure form data
+            var secureData = form.find('input[name="ppe_secure_data"]').val();
+
+            // Debug: Log the secure data (only in debug mode)
+            if (ppeFrontend.debugMode) {
+                console.log('PPE Debug: Secure data found:', secureData);
+            }
+
             // Get form data
             var formData = {
                 action: 'ppe_validate_password',
                 nonce: ppeFrontend.nonce,
                 password: password,
-                type: form.data('type') || '',
-                redirect_url: form.data('redirect-url') || '',
-                allowed_groups: form.data('allowed-groups') || ''
+                ppe_secure_data: secureData
             };
+
+            // Debug: Log the form data being sent (only in debug mode)
+            if (ppeFrontend.debugMode) {
+                console.log('PPE Debug: Form data being sent:', formData);
+            }
 
             // Make AJAX request
             $.ajax({
@@ -62,6 +73,11 @@
                 type: 'POST',
                 data: formData,
                 success: function(response) {
+                    // Debug: Log the response (only in debug mode)
+                    if (ppeFrontend.debugMode) {
+                        console.log('PPE Debug: AJAX response:', response);
+                    }
+
                     if (response.success) {
                         // Password validated successfully
                         PPEFrontend.handleSuccess(response.data, form);

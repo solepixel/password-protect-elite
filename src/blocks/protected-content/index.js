@@ -13,6 +13,9 @@ registerBlockType('password-protect-elite/protected-content', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
 		const { allowedGroups, fallbackMessage } = attributes;
+
+		// Get global string settings
+		const globalStrings = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.globalStrings) || {};
 		const blockProps = useBlockProps();
 
 		// Get password groups from localized data
@@ -65,7 +68,8 @@ registerBlockType('password-protect-elite/protected-content', {
 						<TextareaControl
 							label={__('Fallback Message', 'password-protect-elite')}
 							help={__('Message shown when content is locked.', 'password-protect-elite')}
-							value={fallbackMessage}
+							value={fallbackMessage || globalStrings.default_fallback_message || __('This content is protected by password.', 'password-protect-elite')}
+							placeholder={globalStrings.default_fallback_message || __('This content is protected by password.', 'password-protect-elite')}
 							__nextHasNoMarginBottom={true}
 							onChange={(value) => setAttributes({ fallbackMessage: value })}
 						/>
@@ -73,9 +77,9 @@ registerBlockType('password-protect-elite/protected-content', {
 				</InspectorControls>
 				<div className="ppe-protected-content-editor">
 					<div className="ppe-block-header">
-						<h4>{__('Protected Content', 'password-protect-elite')}</h4>
+						<h4>{globalStrings.protected_content_header || __('Protected Content', 'password-protect-elite')}</h4>
 						<p className="ppe-block-description">
-							{__('Add content below. It will be hidden until the correct password is entered.', 'password-protect-elite')}
+							{globalStrings.protected_content_description || __('Add content below. It will be hidden until the correct password is entered.', 'password-protect-elite')}
 						</p>
 					</div>
 					<InnerBlocks

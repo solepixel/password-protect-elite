@@ -4,7 +4,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { InspectorControls, BlockControls, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, ToolbarGroup, ToolbarButton, SelectControl, TextControl } from '@wordpress/components';
+import { PanelBody, ToolbarGroup, ToolbarButton, SelectControl, TextControl, ToggleControl, RangeControl } from '@wordpress/components';
 
 /**
  * Block registration
@@ -13,6 +13,9 @@ registerBlockType('password-protect-elite/password-entry', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
 		const { allowedGroups, buttonText, placeholder, redirectUrl } = attributes;
+
+		// Get global string settings
+		const globalStrings = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.globalStrings) || {};
 		const blockProps = useBlockProps();
 
 		// Get password groups from localized data
@@ -65,21 +68,23 @@ registerBlockType('password-protect-elite/password-entry', {
 						/>
 						<TextControl
 							label={__('Button Text', 'password-protect-elite')}
-							value={buttonText}
+							value={buttonText || globalStrings.default_button_text || __('Submit', 'password-protect-elite')}
+							placeholder={globalStrings.default_button_text || __('Submit', 'password-protect-elite')}
 							__next40pxDefaultSize={true}
 							__nextHasNoMarginBottom={true}
 							onChange={(value) => setAttributes({ buttonText: value })}
 						/>
 						<TextControl
 							label={__('Placeholder Text', 'password-protect-elite')}
-							value={placeholder}
+							value={placeholder || globalStrings.default_placeholder || __('Enter password', 'password-protect-elite')}
+							placeholder={globalStrings.default_placeholder || __('Enter password', 'password-protect-elite')}
 							__next40pxDefaultSize={true}
 							__nextHasNoMarginBottom={true}
 							onChange={(value) => setAttributes({ placeholder: value })}
 						/>
 						<TextControl
 							label={__('Redirect URL', 'password-protect-elite')}
-							help={__('Optional URL to redirect users after successful password entry.', 'password-protect-elite')}
+							help={globalStrings.redirect_url_help || __('Optional URL to redirect users after successful password entry.', 'password-protect-elite')}
 							value={redirectUrl}
 							__next40pxDefaultSize={true}
 							__nextHasNoMarginBottom={true}
@@ -89,14 +94,14 @@ registerBlockType('password-protect-elite/password-entry', {
 				</InspectorControls>
 				<div className="ppe-password-entry-editor">
 					<div className="ppe-block-preview">
-						<h4>{__('Password Entry Form', 'password-protect-elite')}</h4>
+						<h4>{globalStrings.password_entry_header || __('Password Entry Form', 'password-protect-elite')}</h4>
 						<p className="ppe-block-description">
-							{__('This block will render a password entry form on the frontend.', 'password-protect-elite')}
+							{globalStrings.password_entry_description || __('This block will render a password entry form on the frontend.', 'password-protect-elite')}
 						</p>
 						<div className="ppe-form-preview">
 							<input
 								type="password"
-								placeholder={placeholder}
+								placeholder={placeholder || globalStrings.default_placeholder || __('Enter password', 'password-protect-elite')}
 								disabled={true}
 								className="ppe-preview-input"
 							/>
@@ -105,7 +110,7 @@ registerBlockType('password-protect-elite/password-entry', {
 								disabled={true}
 								className="ppe-preview-button"
 							>
-								{buttonText}
+								{buttonText || globalStrings.default_button_text || __('Submit', 'password-protect-elite')}
 							</button>
 						</div>
 					</div>
