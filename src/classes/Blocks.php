@@ -170,7 +170,6 @@ class Blocks {
 	 * @return string
 	 */
 	public function render_password_entry_block( $attributes, $content ) {
-		// Content parameter is not used for this block type.
 		unset( $content );
 		$allowed_groups = $attributes['allowedGroups'] ?? array();
 
@@ -189,6 +188,51 @@ class Blocks {
 			$allowed_groups = wp_list_pluck( $all_groups, 'id' );
 		}
 
+		$password_manager = new PasswordManager();
+
+		// Check if user is already authenticated for any of the allowed groups.
+		$is_authenticated = false;
+		$authenticated_group = null;
+		foreach ( $allowed_groups as $group_id ) {
+			if ( $password_manager->is_password_validated( $group_id ) ) {
+				$is_authenticated = true;
+				$authenticated_group = $group_id;
+				break;
+			}
+		}
+
+		// If user is already authenticated, show message instead of form.
+		if ( $is_authenticated ) {
+			$authenticated_message = $string_manager->get_string( 'already_authenticated_message' );
+			if ( empty( $authenticated_message ) ) {
+				$authenticated_message = __( 'You have already authenticated for this content.', 'password-protect-elite' );
+			}
+
+			// Get redirect URL from block settings or password group.
+			$final_redirect_url = $redirect_url;
+			if ( empty( $final_redirect_url ) && $authenticated_group ) {
+				$password_group = Database::get_password_group( $authenticated_group );
+				if ( $password_group ) {
+					$final_redirect_url = $password_manager->get_redirect_url( $password_group );
+				}
+			}
+
+			$output = '<div class="ppe-password-entry-block ppe-authenticated ' . esc_attr( $class_name ) . '">';
+			$output .= '<div class="ppe-authenticated-message">';
+			$output .= '<p>' . esc_html( $authenticated_message ) . '</p>';
+
+			// Add redirect link if redirect URL is available.
+			if ( ! empty( $final_redirect_url ) ) {
+				$output .= '<p><a href="' . esc_url( $final_redirect_url ) . '" class="ppe-redirect-link">' . esc_html__( 'Continue to protected content', 'password-protect-elite' ) . '</a></p>';
+			}
+
+			$output .= '</div>';
+			$output .= '</div>';
+
+			return $output;
+		}
+
+		// User is not authenticated, show the password form.
 		$form_args = array(
 			'type'           => 'content',
 			'allowed_groups' => $allowed_groups,
@@ -198,8 +242,7 @@ class Blocks {
 			'class'          => 'ppe-password-form ' . $class_name,
 		);
 
-		$password_manager = new PasswordManager();
-		$form_html        = $password_manager->get_password_form( $form_args );
+		$form_html = $password_manager->get_password_form( $form_args );
 
 		return '<div class="ppe-password-entry-block">' . $form_html . '</div>';
 	}

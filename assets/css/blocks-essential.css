@@ -9,8 +9,10 @@
  */
 
 /* Password Entry Block - Essential Styles */
-.ppe-password-entry-block {
-	margin: 20px 0;
+
+.ppe-authenticated-message {
+	display: flex;
+	flex-direction: column;
 }
 
 .ppe-password-form {

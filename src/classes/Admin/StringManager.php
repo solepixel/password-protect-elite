@@ -79,6 +79,11 @@ class StringManager {
 				'default' => __( 'Select which password groups can be used with this form. Leave empty to allow all content groups.', 'password-protect-elite' ),
 				'description' => __( 'Help text for allowed groups field in password entry blocks.', 'password-protect-elite' ),
 			),
+			'already_authenticated_message' => array(
+				'label' => __( 'Already Authenticated Message', 'password-protect-elite' ),
+				'default' => __( 'You have already authenticated for this content.', 'password-protect-elite' ),
+				'description' => __( 'Message shown when user has already authenticated for the password group.', 'password-protect-elite' ),
+			),
 		);
 	}
 
