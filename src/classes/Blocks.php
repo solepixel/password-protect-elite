@@ -259,44 +259,72 @@ class Blocks {
 	 * @return string
 	 */
 	public function render_protected_content_block( $attributes, $content ) {
-		$allowed_groups   = $attributes['allowedGroups'] ?? array();
+		$allowed_groups          = $attributes['allowedGroups'] ?? array();
+		$access_mode             = $attributes['accessMode'] ?? 'groups';
+		$allowed_roles           = $attributes['allowedRoles'] ?? array();
+		$allowed_capabilities    = $attributes['allowedCapabilities'] ?? array();
 
 		// Get global strings for defaults.
-		$string_manager = new \PasswordProtectElite\Admin\StringManager();
-		$fallback_message = $attributes['fallbackMessage'] ?? $string_manager->get_string( 'default_fallback_message' );
-		$class_name       = $attributes['className'] ?? '';
-
-		// If no groups are selected, allow all content-type and general groups.
-		if ( empty( $allowed_groups ) ) {
-			$content_groups = Database::get_password_groups( 'content' );
-			$general_groups = Database::get_password_groups( 'general' );
-			$all_groups     = array_merge( $content_groups, $general_groups );
-			$allowed_groups = wp_list_pluck( $all_groups, 'id' );
-		}
+		$string_manager    = new \PasswordProtectElite\Admin\StringManager();
+		$fallback_message  = $attributes['fallbackMessage'] ?? $string_manager->get_string( 'default_fallback_message' );
+		$class_name        = $attributes['className'] ?? '';
 
 		$password_manager = new PasswordManager();
 
-		// Check if content is accessible (password or role-based access).
+		// Access Mode: roles -> show content only for matching roles, else empty.
+		if ( 'roles' === $access_mode ) {
+			if ( is_user_logged_in() ) {
+				$user  = wp_get_current_user();
+				$roles = is_array( $allowed_roles ) ? $allowed_roles : array();
+				if ( $user && ! empty( $user->roles ) && ! empty( $roles ) ) {
+					foreach ( (array) $user->roles as $role_slug ) {
+						if ( in_array( $role_slug, $roles, true ) ) {
+							return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+						}
+					}
+				}
+			}
+			return '';
+		}
+
+		// Access Mode: capabilities -> show content only if user has any capability, else empty.
+		if ( 'caps' === $access_mode ) {
+			$caps = is_array( $allowed_capabilities ) ? $allowed_capabilities : array();
+			if ( ! empty( $caps ) ) {
+				foreach ( $caps as $cap ) {
+					if ( current_user_can( sanitize_key( $cap ) ) ) {
+						return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+					}
+				}
+			}
+			return '';
+		}
+
+		// Access Mode: groups (default). Use password validation or role-based bypass per group.
 		if ( self::get_authenticated_group_id( $allowed_groups ) > 0 ) {
 			return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
-		} else {
-			// Show password form.
-			$form_args = array(
-				'type'           => 'content',
-				'allowed_groups' => $allowed_groups,
-				'redirect_url'   => '',
-				'button_text'    => $string_manager->get_string( 'default_button_text' ),
-				'placeholder'    => $string_manager->get_string( 'default_placeholder' ),
-				'class'          => 'ppe-password-form ppe-protected-content-form',
-			);
-
-			$form_html = $password_manager->get_password_form( $form_args );
-
-			return '<div class="ppe-protected-content-block ppe-locked ' . esc_attr( $class_name ) . '">
-				<div class="ppe-protected-message">' . esc_html( $fallback_message ) . '</div>
-				' . $form_html . '
-			</div>';
 		}
+
+		// Show password form only if specific groups are selected; otherwise empty.
+		if ( empty( $allowed_groups ) ) {
+			return '';
+		}
+
+		$form_args = array(
+			'type'           => 'content',
+			'allowed_groups' => $allowed_groups,
+			'redirect_url'   => '',
+			'button_text'    => $string_manager->get_string( 'default_button_text' ),
+			'placeholder'    => $string_manager->get_string( 'default_placeholder' ),
+			'class'          => 'ppe-password-form ppe-protected-content-form',
+		);
+
+		$form_html = $password_manager->get_password_form( $form_args );
+
+		return '<div class="ppe-protected-content-block ppe-locked ' . esc_attr( $class_name ) . '">
+			<div class="ppe-protected-message">' . esc_html( $fallback_message ) . '</div>
+			' . $form_html . '
+		</div>';
 	}
 
 	/**

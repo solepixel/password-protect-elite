@@ -9,10 +9,6 @@
  */
 
 /* Password Entry Block - Full Styles */
-.ppe-password-entry-block {
-	margin: 20px 0;
-}
-
 .ppe-password-entry-block.ppe-authenticated {
 	background: #d4edda;
 	border: 2px solid #c3e6cb;
@@ -136,10 +132,6 @@
 }
 
 /* Protected Content Block - Full Styles */
-.ppe-protected-content-block {
-	margin: 20px 0;
-}
-
 .ppe-protected-content-block.ppe-locked {
 	position: relative;
 	padding: 20px;

@@ -12,7 +12,7 @@ import { PanelBody, SelectControl, TextareaControl, ToolbarGroup, ToolbarButton 
 registerBlockType('password-protect-elite/protected-content', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
-		const { allowedGroups, fallbackMessage } = attributes;
+		const { allowedGroups, fallbackMessage, accessMode, allowedRoles, allowedCapabilities } = attributes;
 
 		// Get global string settings
 		const globalStrings = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.globalStrings) || {};
@@ -24,7 +24,7 @@ registerBlockType('password-protect-elite/protected-content', {
 			group.type === 'content' || group.type === 'general'
 		);
 
-		// Create options for select control
+		// Create options for select controls
 		const groupOptions = [
 			{ label: __('All Content Groups', 'password-protect-elite'), value: '' }
 		].concat(
@@ -33,6 +33,16 @@ registerBlockType('password-protect-elite/protected-content', {
 				value: group.id.toString()
 			}))
 		);
+
+		const accessModeOptions = [
+			{ label: __('Password Groups', 'password-protect-elite'), value: 'groups' },
+			{ label: __('Role-based Access', 'password-protect-elite'), value: 'roles' },
+			{ label: __('Capability-based Access', 'password-protect-elite'), value: 'caps' }
+		];
+
+		// WordPress roles/capabilities from localization (if provided), otherwise let users type
+		const wpRoles = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.wpRoles) || [];
+		const wpCaps  = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.wpCapabilities) || [];
 
 		return (
 			<div {...blockProps} className={`ppe-protected-content-wrapper ${blockProps.className || ''}`}>
@@ -48,10 +58,21 @@ registerBlockType('password-protect-elite/protected-content', {
 					</ToolbarGroup>
 				</BlockControls>
 				<InspectorControls>
-					<PanelBody
+				<PanelBody
 						title={__('Protected Content Settings', 'password-protect-elite')}
 						initialOpen={true}
 					>
+					<SelectControl
+						label={__('Access Mode', 'password-protect-elite')}
+						help={__('Decide how users can view this content.', 'password-protect-elite')}
+						value={accessMode || 'groups'}
+						options={accessModeOptions}
+						__next40pxDefaultSize={true}
+						__nextHasNoMarginBottom={true}
+						onChange={(value) => setAttributes({ accessMode: value })}
+					/>
+
+					{(accessMode === 'groups' || !accessMode) && (
 						<SelectControl
 							label={__('Allowed Password Groups', 'password-protect-elite')}
 							help={__('Select which password groups can unlock this content.', 'password-protect-elite')}
@@ -65,6 +86,30 @@ registerBlockType('password-protect-elite/protected-content', {
 								});
 							}}
 						/>
+					)}
+
+					{accessMode === 'roles' && (
+						<TextareaControl
+							label={__('Allowed Roles', 'password-protect-elite')}
+							help={__('Comma-separated list of role slugs that can view this content.', 'password-protect-elite')}
+							value={(allowedRoles || []).join(',')}
+							placeholder={(wpRoles.length ? wpRoles.join(', ') : 'administrator, editor, author')}
+							__nextHasNoMarginBottom={true}
+							onChange={(value) => setAttributes({ allowedRoles: value.split(',').map(s => s.trim()).filter(Boolean) })}
+						/>
+					)}
+
+					{accessMode === 'caps' && (
+						<TextareaControl
+							label={__('Allowed Capabilities', 'password-protect-elite')}
+							help={__('Comma-separated list of capabilities required to view content.', 'password-protect-elite')}
+							value={(allowedCapabilities || []).join(',')}
+							placeholder={(wpCaps.length ? wpCaps.join(', ') : 'read, edit_posts')}
+							__nextHasNoMarginBottom={true}
+							onChange={(value) => setAttributes({ allowedCapabilities: value.split(',').map(s => s.trim()).filter(Boolean) })}
+						/>
+					)}
+					{(!accessMode || accessMode === 'groups') && (
 						<TextareaControl
 							label={__('Fallback Message', 'password-protect-elite')}
 							help={__('Message shown when content is locked.', 'password-protect-elite')}
@@ -73,6 +118,7 @@ registerBlockType('password-protect-elite/protected-content', {
 							__nextHasNoMarginBottom={true}
 							onChange={(value) => setAttributes({ fallbackMessage: value })}
 						/>
+					)}
 					</PanelBody>
 				</InspectorControls>
 				<div className="ppe-protected-content-editor">
@@ -94,6 +140,7 @@ registerBlockType('password-protect-elite/protected-content', {
 	},
 
 	save: function() {
-		return null; // Server-side rendering
+		// Save inner block content so it persists and is available in PHP via $content.
+		return <InnerBlocks.Content />;
 	}
 });

@@ -57,6 +57,20 @@ class PageProtection {
 		$current_protection = Database::get_page_protection( $post->ID );
 		$current_group_id   = $current_protection ? $current_protection->password_group_id : 0;
 
+		// New: page-level access mode and settings.
+		$access_mode  = get_post_meta( $post->ID, '_ppe_access_mode', true );
+		$access_roles = get_post_meta( $post->ID, '_ppe_access_roles', true );
+		$access_caps  = get_post_meta( $post->ID, '_ppe_access_caps', true );
+		if ( empty( $access_mode ) ) {
+			$access_mode = 'groups';
+		}
+		if ( empty( $access_roles ) || ! is_array( $access_roles ) ) {
+			$access_roles = array();
+		}
+		if ( empty( $access_caps ) ) {
+			$access_caps = '';
+		}
+
 		// Determine if this page should be considered protected via auto-protect rules for its FRONT-END permalink,
 		// respecting each candidate group's own Exclude URLs.
 		$auto_protect_group = null;
@@ -92,6 +106,16 @@ class PageProtection {
 				</label>
 			</p>
 
+			<p>
+				<label for="ppe-access-mode"><strong><?php esc_html_e( 'Access Mode', 'password-protect-elite' ); ?></strong></label>
+				<select id="ppe-access-mode" name="ppe_access_mode" class="ppe-protection-select">
+					<option value="groups" <?php selected( $access_mode, 'groups' ); ?>><?php esc_html_e( 'Password Groups', 'password-protect-elite' ); ?></option>
+					<option value="roles" <?php selected( $access_mode, 'roles' ); ?>><?php esc_html_e( 'Role-based Access', 'password-protect-elite' ); ?></option>
+					<option value="caps" <?php selected( $access_mode, 'caps' ); ?>><?php esc_html_e( 'Capability-based Access', 'password-protect-elite' ); ?></option>
+				</select>
+			</p>
+
+			<div class="ppe-access-groups-container" style="<?php echo ( 'groups' === $access_mode ) ? '' : 'display:none;'; ?>">
 			<select id="ppe-protection-group" name="ppe_protection_group" class="ppe-protection-select">
 				<?php
 					$empty_option_label = ( ! $current_protection && $auto_protect_group )
@@ -105,6 +129,33 @@ class PageProtection {
 					</option>
 				<?php endforeach; ?>
 			</select>
+			</div>
+
+			<div class="ppe-access-roles-container" style="<?php echo ( 'roles' === $access_mode ) ? '' : 'display:none;'; ?>">
+				<p><strong><?php esc_html_e( 'Allowed Roles', 'password-protect-elite' ); ?></strong></p>
+				<?php
+					$roles = function_exists( 'get_editable_roles' ) ? get_editable_roles() : array();
+					if ( ! empty( $roles ) ) :
+				?>
+					<div class="ppe-roles-checkboxes">
+						<?php foreach ( $roles as $role_slug => $role_info ) : ?>
+							<label style="display:block;margin-bottom:4px;">
+								<input type="checkbox" name="ppe_access_roles[]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( in_array( $role_slug, $access_roles, true ) ); ?>>
+								<?php echo esc_html( translate_user_role( $role_info['name'] ) ); ?>
+							</label>
+						<?php endforeach; ?>
+					</div>
+				<?php else : ?>
+					<em><?php esc_html_e( 'No editable roles found.', 'password-protect-elite' ); ?></em>
+				<?php endif; ?>
+				<p class="description"><?php esc_html_e( 'Users with any selected role can view this page without entering a password.', 'password-protect-elite' ); ?></p>
+			</div>
+
+			<div class="ppe-access-caps-container" style="<?php echo ( 'caps' === $access_mode ) ? '' : 'display:none;'; ?>">
+				<p><strong><?php esc_html_e( 'Allowed Capabilities', 'password-protect-elite' ); ?></strong></p>
+				<input type="text" name="ppe_access_caps" value="<?php echo esc_attr( is_array( $access_caps ) ? implode( ',', $access_caps ) : $access_caps ); ?>" class="widefat" placeholder="read, edit_posts">
+				<p class="description"><?php esc_html_e( 'Comma-separated capability slugs. Users must have at least one to view this page.', 'password-protect-elite' ); ?></p>
+			</div>
 
 			<?php if ( empty( $password_groups ) ) : ?>
 				<p class="ppe-no-groups-notice">
@@ -192,6 +243,20 @@ class PageProtection {
 			margin-top: 10px;
 		}
 		</style>
+		<script>
+		(function(){
+			const mode = document.getElementById('ppe-access-mode');
+			if(!mode){return;}
+			function sync(){
+				const v = mode.value || 'groups';
+				document.querySelector('.ppe-access-groups-container').style.display = (v==='groups') ? '' : 'none';
+				document.querySelector('.ppe-access-roles-container').style.display  = (v==='roles') ? '' : 'none';
+				document.querySelector('.ppe-access-caps-container').style.display   = (v==='caps') ? '' : 'none';
+			}
+			mode.addEventListener('change', sync);
+			sync();
+		})();
+		</script>
 		<?php
 	}
 
@@ -222,15 +287,34 @@ class PageProtection {
 			return;
 		}
 
-		// Get the selected password group.
-		$protection_group = intval( $_POST['ppe_protection_group'] ?? 0 );
+		// Save access mode and related fields.
+		$access_mode = isset( $_POST['ppe_access_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['ppe_access_mode'] ) ) : 'groups';
+		update_post_meta( $post_id, '_ppe_access_mode', $access_mode );
 
-		if ( $protection_group > 0 ) {
-			// Set page protection.
-			Database::set_page_protection( $post_id, $protection_group );
-		} else {
-			// Remove page protection.
+		if ( 'roles' === $access_mode ) {
+			$roles = isset( $_POST['ppe_access_roles'] ) && is_array( $_POST['ppe_access_roles'] ) ? array_map( 'sanitize_key', wp_unslash( $_POST['ppe_access_roles'] ) ) : array();
+			update_post_meta( $post_id, '_ppe_access_roles', array_values( array_unique( array_filter( $roles ) ) ) );
+			// Remove group protection when using roles mode.
 			Database::remove_page_protection( $post_id );
+			delete_post_meta( $post_id, '_ppe_access_caps' );
+		} elseif ( 'caps' === $access_mode ) {
+			$caps_raw = isset( $_POST['ppe_access_caps'] ) ? (string) wp_unslash( $_POST['ppe_access_caps'] ) : '';
+			$caps = array_filter( array_map( 'sanitize_key', array_map( 'trim', explode( ',', $caps_raw ) ) ) );
+			update_post_meta( $post_id, '_ppe_access_caps', array_values( array_unique( $caps ) ) );
+			// Remove group protection when using caps mode.
+			Database::remove_page_protection( $post_id );
+			delete_post_meta( $post_id, '_ppe_access_roles' );
+		} else {
+			// groups mode
+			delete_post_meta( $post_id, '_ppe_access_roles' );
+			delete_post_meta( $post_id, '_ppe_access_caps' );
+			// Save selected password group.
+			$protection_group = intval( $_POST['ppe_protection_group'] ?? 0 );
+			if ( $protection_group > 0 ) {
+				Database::set_page_protection( $post_id, $protection_group );
+			} else {
+				Database::remove_page_protection( $post_id );
+			}
 		}
 	}
 
@@ -245,9 +329,54 @@ class PageProtection {
 
 		global $post;
 
-		// Get page protection.
-		$page_protection = Database::get_page_protection( $post->ID );
+		// First evaluate page-level access mode for roles/caps.
+		$access_mode = get_post_meta( $post->ID, '_ppe_access_mode', true );
+		if ( 'roles' === $access_mode ) {
+			$roles = get_post_meta( $post->ID, '_ppe_access_roles', true );
+			$roles = is_array( $roles ) ? $roles : array();
+			$allowed = false;
+			if ( is_user_logged_in() && ! empty( $roles ) ) {
+				$user = wp_get_current_user();
+				if ( $user && ! empty( $user->roles ) ) {
+					foreach ( (array) $user->roles as $role_slug ) {
+						if ( in_array( $role_slug, $roles, true ) ) {
+							$allowed = true;
+							break;
+						}
+					}
+				}
+			}
+			if ( $allowed ) {
+				return;
+			}
+			status_header( 404 );
+			nocache_headers();
+			include get_query_template( '404' );
+			exit;
+		}
+		if ( 'caps' === $access_mode ) {
+			$caps = get_post_meta( $post->ID, '_ppe_access_caps', true );
+			$caps = is_array( $caps ) ? $caps : array();
+			$allowed = false;
+			if ( ! empty( $caps ) ) {
+				foreach ( $caps as $cap ) {
+					if ( current_user_can( $cap ) ) {
+						$allowed = true;
+						break;
+					}
+				}
+			}
+			if ( $allowed ) {
+				return;
+			}
+			status_header( 404 );
+			nocache_headers();
+			include get_query_template( '404' );
+			exit;
+		}
 
+		// Fallback to password group protection.
+		$page_protection = Database::get_page_protection( $post->ID );
 		if ( ! $page_protection ) {
 			return;
 		}

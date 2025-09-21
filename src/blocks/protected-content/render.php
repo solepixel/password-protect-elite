@@ -23,6 +23,9 @@ use PasswordProtectElite\Blocks;
  */
 function render_protected_content_block( $attributes, $content ) {
 	$allowed_groups   = $attributes['allowedGroups'] ?? array();
+	$access_mode      = $attributes['accessMode'] ?? 'groups';
+	$allowed_roles    = $attributes['allowedRoles'] ?? array();
+	$allowed_caps     = $attributes['allowedCapabilities'] ?? array();
 	$fallback_message = $attributes['fallbackMessage'] ?? __( 'This content is password protected.', 'password-protect-elite' );
 	$class_name       = $attributes['className'] ?? '';
 
@@ -36,11 +39,44 @@ function render_protected_content_block( $attributes, $content ) {
 
 	$password_manager = new PasswordManager();
 
-    // Check if content is accessible (password or role-based access).
-    if ( Blocks::get_authenticated_group_id( $allowed_groups ) > 0 ) {
+	// Role-based/capability-based access modes bypass password UI entirely.
+	if ( 'roles' === $access_mode ) {
+		if ( is_user_logged_in() ) {
+			$user = wp_get_current_user();
+			$roles = is_array( $allowed_roles ) ? $allowed_roles : array();
+			if ( $user && ! empty( $user->roles ) && ! empty( $roles ) ) {
+				foreach ( (array) $user->roles as $role_slug ) {
+					if ( in_array( $role_slug, $roles, true ) ) {
+						return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+					}
+				}
+			}
+		}
+		// Not authorized: render nothing.
+		return '';
+	}
+
+	if ( 'caps' === $access_mode ) {
+		$caps = is_array( $allowed_caps ) ? $allowed_caps : array();
+		if ( ! empty( $caps ) ) {
+			foreach ( $caps as $cap ) {
+				if ( current_user_can( sanitize_key( $cap ) ) ) {
+					return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+				}
+			}
+		}
+		return '';
+	}
+
+	// Default (groups): show content if authenticated via password or role-based bypass for any selected group.
+	if ( Blocks::get_authenticated_group_id( $allowed_groups ) > 0 ) {
 		return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
 	} else {
-		// Show password form.
+		// Show password form only if there are password groups selected.
+		if ( empty( $allowed_groups ) ) {
+			return '';
+		}
+
 		$form_args = array(
 			'type'           => 'content',
 			'allowed_groups' => $allowed_groups,

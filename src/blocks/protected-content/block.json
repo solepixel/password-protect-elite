@@ -16,6 +16,18 @@
 			"type": "array",
 			"default": []
 		},
+		"accessMode": {
+			"type": "string",
+			"default": "groups"
+		},
+		"allowedRoles": {
+			"type": "array",
+			"default": []
+		},
+		"allowedCapabilities": {
+			"type": "array",
+			"default": []
+		},
 		"fallbackMessage": {
 			"type": "string",
 			"default": "This content is password protected."
