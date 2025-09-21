@@ -466,7 +466,7 @@ class PasswordGroups {
 		if ( 'ppe_password_group' === $post_type && ( 'post.php' === $hook || 'post-new.php' === $hook ) ) {
 			// Enqueue WordPress core password strength meter.
 			wp_enqueue_script( 'password-strength-meter' );
-			wp_enqueue_script( 'ppe-password-groups-js', PPE_PLUGIN_URL . 'assets/admin/js/password-groups.js', array( 'jquery' ), PPE_VERSION, true );
+			wp_enqueue_script( 'ppe-password-groups-js', PPE_PLUGIN_URL . 'assets/admin/js/password-groups.js', array( 'jquery', 'password-strength-meter' ), PPE_VERSION, true );
 			wp_enqueue_style( 'ppe-password-groups-css', PPE_PLUGIN_URL . 'assets/admin/css/password-groups.css', array(), PPE_VERSION );
 
 			// Localize script with strings.

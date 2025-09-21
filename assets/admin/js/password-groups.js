@@ -8,6 +8,10 @@
     'use strict';
 
     $(document).ready(function() {
+        var meteredInputs = [];
+        function isZxcvbnReady() {
+            return typeof window.zxcvbn === 'function';
+        }
         // Password strength meter helpers
         function getStrengthLabel(score) {
             var labels = ppeCptAdmin && ppeCptAdmin.strings ? ppeCptAdmin.strings : {};
@@ -22,14 +26,32 @@
 
         function ensureStrengthUi($input) {
             if ($input.length === 0) return $();
-            var $existing = $input.next('.ppe-password-strength');
+            var isAdditional = $input.closest('.ppe-additional-password-item').length > 0;
+            var $target = $input;
+            if (isAdditional) {
+                // Ensure wrapper around input for overlay label positioning
+                if (!$input.parent().hasClass('ppe-additional-password-input-wrap')) {
+                    $input.wrap('<div class="ppe-additional-password-input-wrap"></div>');
+                }
+                $target = $input.parent();
+                // Ensure overlay label exists
+                if ($target.children('.ppe-strength-overlay').length === 0) {
+                    $('<span class="ppe-strength-overlay" aria-hidden="true"></span>').appendTo($target);
+                }
+            }
+
+            var $existing = isAdditional ? $target.children('.ppe-password-strength') : $input.next('.ppe-password-strength');
             if ($existing.length) return $existing;
 
             var $ui = $('<div class="ppe-password-strength">' +
                 '<div class="ppe-strength-bar" aria-hidden="true"></div>' +
                 '<span class="ppe-strength-text"></span>' +
             '</div>');
-            $input.after($ui);
+            if (isAdditional) {
+                $target.append($ui);
+            } else {
+                $input.after($ui);
+            }
             return $ui;
         }
 
@@ -53,18 +75,41 @@
         function attachStrengthMeter($input) {
             var $ui = ensureStrengthUi($input);
             var $text = $ui.find('.ppe-strength-text');
+            // If zxcvbn isn't ready yet, mark as pending (dim the UI)
+            if (!isZxcvbnReady()) {
+                $ui.addClass('ppe-strength-pending');
+                var $wrap = $input.parent();
+                if ($wrap.hasClass('ppe-additional-password-input-wrap')) {
+                    $wrap.children('.ppe-strength-overlay').addClass('ppe-strength-pending');
+                }
+            }
 
             function update() {
                 var val = ($input.val() || '').trim();
                 var score = meterScore(val);
+                if (score < 0) score = 0; // Clamp negatives (WP meter returns -1 for empty)
                 var label = getStrengthLabel(score);
                 $ui.removeClass('strength-0 strength-1 strength-2 strength-3 strength-4')
                    .addClass('strength-' + score);
                 $text.text(label);
+                // If this is an additional password input, also update the overlay label
+                var $wrap = $input.parent();
+                if ($wrap.hasClass('ppe-additional-password-input-wrap')) {
+                    $wrap.children('.ppe-strength-overlay').text(label);
+                }
             }
 
             $input.on('input keyup change', update);
+            // Initial render (immediately)
             update();
+            // Render again after a tick to ensure wp.passwordStrength is ready
+            setTimeout(update, 0);
+            // And once more after DOM is fully idle
+            setTimeout(update, 50);
+            // Store updater and track input to re-run when zxcvbn becomes available
+            $input.data('ppeUpdateStrength', update);
+            $input.data('ppeStrengthUi', $ui);
+            meteredInputs.push($input);
         }
 
         // Handle adding additional passwords
@@ -73,7 +118,10 @@
 
             var wrapper = $('#ppe-additional-passwords-wrapper');
             var newField = $('<div class="ppe-additional-password-item">' +
-                '<input type="text" name="ppe_additional_passwords[]" value="" class="regular-text" placeholder="' + ppeCptAdmin.strings.enterPassword + '">' +
+                '<div class="ppe-additional-password-input-wrap">' +
+                    '<input type="text" name="ppe_additional_passwords[]" value="" class="regular-text" placeholder="' + ppeCptAdmin.strings.enterPassword + '">' +
+                    '<span class="ppe-strength-overlay" aria-hidden="true"></span>' +
+                '</div>' +
                 '<button type="button" class="button button-secondary ppe-remove-additional-password">' + ppeCptAdmin.strings.remove + '</button>' +
                 '</div>');
 
@@ -217,6 +265,51 @@
         $('input[name="ppe_additional_passwords[]"]').each(function() {
             attachStrengthMeter($(this));
         });
+
+        // Re-run meters when zxcvbn (async) becomes available to get accurate score
+        function rerunAllMeters() {
+            // Only rerun and clear pending once the zxcvbn library is available
+            if (!isZxcvbnReady()) {
+                return;
+            }
+            meteredInputs.forEach(function($inp) {
+                var fn = $inp.data('ppeUpdateStrength');
+                if (typeof fn === 'function') {
+                    fn();
+                } else {
+                    $inp.trigger('change');
+                }
+                // Remove pending state when accurate library is ready
+                var $ui = $inp.data('ppeStrengthUi');
+                if ($ui) {
+                    $ui.removeClass('ppe-strength-pending');
+                }
+                var $wrap = $inp.parent();
+                if ($wrap.hasClass('ppe-additional-password-input-wrap')) {
+                    $wrap.children('.ppe-strength-overlay').removeClass('ppe-strength-pending');
+                }
+            });
+        }
+
+        function scheduleZxcvbnRerun() {
+            if (typeof window.zxcvbn === 'function') {
+                rerunAllMeters();
+                return;
+            }
+            var attempts = 0;
+            var iv = setInterval(function() {
+                attempts++;
+                if (typeof window.zxcvbn === 'function') {
+                    clearInterval(iv);
+                    rerunAllMeters();
+                } else if (attempts > 60) {
+                    clearInterval(iv);
+                }
+            }, 100);
+        }
+
+        scheduleZxcvbnRerun();
+        $(window).on('load', rerunAllMeters);
     });
 
 })(jQuery);
