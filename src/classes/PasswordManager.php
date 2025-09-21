@@ -221,9 +221,9 @@ class PasswordManager {
 		<form class="<?php echo esc_attr( $args['class'] ); ?>">
 			<?php wp_nonce_field( 'ppe_validate_password', 'ppe_nonce' ); ?>
 			<input type="hidden" name="ppe_secure_data" value="<?php echo esc_attr( $secure_data ); ?>">
+			<div class="ppe-error-message" style="display: none;"></div>
 			<input type="password" name="password" class="ppe-password-input" placeholder="<?php echo esc_attr( $args['placeholder'] ); ?>" required>
 			<button type="submit" class="ppe-submit-button"><?php echo esc_html( $args['button_text'] ); ?></button>
-			<div class="ppe-error-message" style="display: none;"></div>
 		</form>
 		<?php
 		return ob_get_clean();

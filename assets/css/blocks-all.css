@@ -80,7 +80,7 @@
 }
 
 .ppe-password-form .ppe-error-message {
-	margin-top: 10px;
+	margin-bottom: 10px;
 	padding: 10px;
 	background: #f8d7da;
 	color: #721c24;
@@ -179,7 +179,7 @@
 }
 
 .ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-error-message {
-	margin-top: 10px;
+	margin-bottom: 10px;
 	padding: 10px;
 	background: #f8d7da;
 	color: #721c24;
