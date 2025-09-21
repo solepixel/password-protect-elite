@@ -4,7 +4,7 @@
 import { registerBlockType } from '@wordpress/blocks';
 import { __ } from '@wordpress/i18n';
 import { InspectorControls, BlockControls, InnerBlocks, useBlockProps } from '@wordpress/block-editor';
-import { PanelBody, SelectControl, TextareaControl, ToolbarGroup, ToolbarButton } from '@wordpress/components';
+import { PanelBody, SelectControl, TextareaControl, ToolbarGroup, ToolbarButton, ToggleControl } from '@wordpress/components';
 
 /**
  * Block registration
@@ -12,7 +12,7 @@ import { PanelBody, SelectControl, TextareaControl, ToolbarGroup, ToolbarButton 
 registerBlockType('password-protect-elite/protected-content', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
-		const { allowedGroups, fallbackMessage, accessMode, allowedRoles, allowedCapabilities } = attributes;
+		const { allowedGroups, fallbackMessage, accessMode, allowedRoles, allowedCapabilities, disableForm } = attributes;
 
 		// Get global string settings
 		const globalStrings = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.globalStrings) || {};
@@ -88,6 +88,15 @@ registerBlockType('password-protect-elite/protected-content', {
 						/>
 					)}
 
+					{(accessMode === 'groups' || !accessMode) && (
+						<ToggleControl
+							label={__('Disable Form', 'password-protect-elite')}
+							help={__('Hide the password form and only show content after the user has authenticated by other means.', 'password-protect-elite')}
+							checked={!!disableForm}
+							onChange={(value) => setAttributes({ disableForm: !!value })}
+						/>
+					)}
+
 					{accessMode === 'roles' && (
 						<TextareaControl
 							label={__('Allowed Roles', 'password-protect-elite')}
@@ -109,7 +118,7 @@ registerBlockType('password-protect-elite/protected-content', {
 							onChange={(value) => setAttributes({ allowedCapabilities: value.split(',').map(s => s.trim()).filter(Boolean) })}
 						/>
 					)}
-					{(!accessMode || accessMode === 'groups') && (
+					{(!accessMode || accessMode === 'groups') && !disableForm && (
 						<TextareaControl
 							label={__('Fallback Message', 'password-protect-elite')}
 							help={__('Message shown when content is locked.', 'password-protect-elite')}

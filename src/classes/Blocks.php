@@ -267,6 +267,7 @@ class Blocks {
 		$access_mode             = $attributes['accessMode'] ?? 'groups';
 		$allowed_roles           = $attributes['allowedRoles'] ?? array();
 		$allowed_capabilities    = $attributes['allowedCapabilities'] ?? array();
+		$disable_form            = ! empty( $attributes['disableForm'] );
 
 		// Get global strings for defaults.
 		$string_manager    = new \PasswordProtectElite\Admin\StringManager();
@@ -309,8 +310,8 @@ class Blocks {
 			return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
 		}
 
-		// Show password form only if specific groups are selected; otherwise empty.
-		if ( empty( $allowed_groups ) ) {
+		// Show password form only if specific groups are selected and form is not disabled; otherwise empty.
+		if ( empty( $allowed_groups ) || $disable_form ) {
 			return '';
 		}
 

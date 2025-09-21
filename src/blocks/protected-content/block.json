@@ -28,6 +28,10 @@
 			"type": "array",
 			"default": []
 		},
+		"disableForm": {
+			"type": "boolean",
+			"default": false
+		},
 		"fallbackMessage": {
 			"type": "string",
 			"default": "This content is password protected."

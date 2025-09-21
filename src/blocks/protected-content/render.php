@@ -26,6 +26,7 @@ function render_protected_content_block( $attributes, $content ) {
 	$access_mode      = $attributes['accessMode'] ?? 'groups';
 	$allowed_roles    = $attributes['allowedRoles'] ?? array();
 	$allowed_caps     = $attributes['allowedCapabilities'] ?? array();
+	$disable_form     = ! empty( $attributes['disableForm'] );
 	$fallback_message = $attributes['fallbackMessage'] ?? __( 'This content is password protected.', 'password-protect-elite' );
 	$class_name       = $attributes['className'] ?? '';
 
@@ -72,8 +73,8 @@ function render_protected_content_block( $attributes, $content ) {
 	if ( Blocks::get_authenticated_group_id( $allowed_groups ) > 0 ) {
 		return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
 	} else {
-		// Show password form only if there are password groups selected.
-		if ( empty( $allowed_groups ) ) {
+		// Show password form only if there are password groups selected and form is not disabled.
+		if ( empty( $allowed_groups ) || $disable_form ) {
 			return '';
 		}
 
