@@ -85,7 +85,7 @@ registerBlockType('password-protect-elite/protected-content', {
 					<InnerBlocks
 						allowedBlocks={true}
 						template={[
-							['core/paragraph', { content: __('This content is protected by password. Add your content here.', 'password-protect-elite') }]
+							['core/paragraph', { placeholder: __('Add Secure Content Here...', 'password-protect-elite') }]
 						]}
 					/>
 				</div>
