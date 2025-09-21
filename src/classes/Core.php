@@ -102,8 +102,8 @@ class Core {
 	public function __construct() {
 		// Initialize components.
 		$this->admin            = new Admin\Admin();
-		$this->admin_help       = new Admin\Help();
 		$this->admin_settings   = new Admin\Settings();
+		$this->admin_help       = new Admin\Help();
 		$this->password_manager = new PasswordManager();
 		$this->database         = new Database();
 		$this->password_groups  = new PasswordGroups();

@@ -188,6 +188,15 @@ class PasswordManager {
 
 		$session_data         = $validated_data[ $group_id ];
 		$stored_password_hash = $session_data['password_hash'] ?? '';
+		$timestamp            = $session_data['timestamp'] ?? 0;
+
+		// Check if session has expired based on settings.
+		if ( $this->is_session_expired( $timestamp ) ) {
+			// Session has expired, remove from session.
+			unset( $validated_data[ $group_id ] );
+			$_SESSION[ self::SESSION_KEY ] = $validated_data;
+			return false;
+		}
 
 		// Re-validate the stored password against current password group data.
 		if ( ! $this->revalidate_stored_password( $group_id, $stored_password_hash ) ) {
@@ -284,6 +293,23 @@ class PasswordManager {
 		// Use a combination of password and a salt for session storage.
 		// This is different from database storage to add an extra layer of security.
 		return hash( 'sha256', $password . wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Check if session has expired based on settings.
+	 *
+	 * @param int $timestamp Session timestamp.
+	 * @return bool True if session has expired, false otherwise.
+	 */
+	private function is_session_expired( $timestamp ) {
+		// Get session duration in hours from settings.
+		$session_duration_hours = \PasswordProtectElite\Admin\Settings::get_session_duration_hours();
+
+		// Convert hours to seconds.
+		$session_duration_seconds = $session_duration_hours * 3600;
+
+		// Check if current time exceeds the session duration.
+		return ( time() - $timestamp ) > $session_duration_seconds;
 	}
 
 	/**

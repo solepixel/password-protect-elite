@@ -74,7 +74,7 @@ class Settings {
 
 		add_settings_field(
 			'session_duration',
-			__( 'Session Duration (hours)', 'password-protect-elite' ),
+			__( 'Session Duration', 'password-protect-elite' ),
 			array( $this, 'render_session_duration_field' ),
 			self::PAGE_SLUG,
 			'ppe_general_section'
@@ -315,17 +315,26 @@ class Settings {
 	 */
 	public function render_session_duration_field() {
 		$settings = get_option( self::SETTINGS_GROUP, array() );
-		$value    = isset( $settings['session_duration'] ) ? $settings['session_duration'] : 24;
+		$duration_value = isset( $settings['session_duration'] ) ? $settings['session_duration'] : 24;
+		$duration_unit  = isset( $settings['session_duration_unit'] ) ? $settings['session_duration_unit'] : 'hours';
 		?>
-		<input type="number"
-			name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[session_duration]"
-			id="session_duration"
-			value="<?php echo esc_attr( $value ); ?>"
-			min="1"
-			max="168"
-			class="small-text"
-		/>
-		<p class="description"><?php esc_html_e( 'How long a user session remains valid before requiring re-authentication (1-168 hours).', 'password-protect-elite' ); ?></p>
+		<div class="session-duration-container">
+			<input type="number"
+				name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[session_duration]"
+				id="session_duration"
+				value="<?php echo esc_attr( $duration_value ); ?>"
+				min="1"
+				max="8760"
+				class="small-text"
+				style="margin-right: 8px;"
+			/>
+			<select name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[session_duration_unit]" id="session_duration_unit" style="margin-right: 8px;">
+				<option value="minutes" <?php selected( $duration_unit, 'minutes' ); ?>><?php esc_html_e( 'minutes', 'password-protect-elite' ); ?></option>
+				<option value="hours" <?php selected( $duration_unit, 'hours' ); ?>><?php esc_html_e( 'hours', 'password-protect-elite' ); ?></option>
+				<option value="days" <?php selected( $duration_unit, 'days' ); ?>><?php esc_html_e( 'days', 'password-protect-elite' ); ?></option>
+			</select>
+		</div>
+		<p class="description"><?php esc_html_e( 'How long a user session remains valid before requiring re-authentication.', 'password-protect-elite' ); ?></p>
 		<?php
 	}
 
@@ -579,7 +588,7 @@ class Settings {
 			<table class="form-table" role="presentation">
 				<tr>
 					<th scope="row">
-						<label for="session_duration"><?php esc_html_e( 'Session Duration (hours)', 'password-protect-elite' ); ?></label>
+						<label for="session_duration"><?php esc_html_e( 'Session Duration', 'password-protect-elite' ); ?></label>
 					</th>
 					<td>
 						<?php $this->render_session_duration_field(); ?>
@@ -804,10 +813,49 @@ class Settings {
 		}
 
 		if ( isset( $input['session_duration'] ) ) {
-			$sanitized['session_duration'] = max( 1, min( 168, absint( $input['session_duration'] ) ) );
+			$sanitized['session_duration'] = max( 1, min( 8760, absint( $input['session_duration'] ) ) );
+		}
+
+		if ( isset( $input['session_duration_unit'] ) ) {
+			$allowed_units = array( 'minutes', 'hours', 'days' );
+			$sanitized['session_duration_unit'] = in_array( $input['session_duration_unit'], $allowed_units, true )
+				? $input['session_duration_unit']
+				: 'hours';
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Convert session duration to hours for internal use.
+	 *
+	 * @param int    $duration The duration value.
+	 * @param string $unit The duration unit (minutes, hours, days).
+	 * @return int Duration in hours.
+	 */
+	public static function convert_session_duration_to_hours( $duration, $unit ) {
+		switch ( $unit ) {
+			case 'minutes':
+				return max( 1, round( $duration / 60 ) );
+			case 'hours':
+				return max( 1, $duration );
+			case 'days':
+				return max( 1, $duration * 24 );
+			default:
+				return max( 1, $duration );
+		}
+	}
+
+	/**
+	 * Get session duration in hours from settings.
+	 *
+	 * @return int Session duration in hours.
+	 */
+	public static function get_session_duration_hours() {
+		$settings = get_option( self::SETTINGS_GROUP, array() );
+		$duration = isset( $settings['session_duration'] ) ? $settings['session_duration'] : 24;
+		$unit     = isset( $settings['session_duration_unit'] ) ? $settings['session_duration_unit'] : 'hours';
+		return self::convert_session_duration_to_hours( $duration, $unit );
 	}
 
 	/**
