@@ -128,7 +128,7 @@ class PasswordManager {
 		}
 
 		if ( $password_group ) {
-			$this->store_validated_password( $password_group->id );
+			$this->store_validated_password( $password_group->id, $password );
 
 			// Determine redirect URL.
 			$final_redirect = $this->get_redirect_url( $password_group, $redirect_url );
@@ -146,22 +146,30 @@ class PasswordManager {
 	}
 
 	/**
-	 * Store validated password group in session.
+	 * Store validated password group and password in session.
 	 *
-	 * @param int $group_id Password group ID.
+	 * @param int    $group_id Password group ID.
+	 * @param string $password The password that was used for authentication.
 	 */
-	public function store_validated_password( $group_id ) {
+	public function store_validated_password( $group_id, $password ) {
 		if ( ! session_id() ) {
 			session_start();
 		}
 
-		$validated_groups              = $_SESSION[ self::SESSION_KEY ] ?? array();
-		$validated_groups[]            = $group_id;
-		$_SESSION[ self::SESSION_KEY ] = array_unique( $validated_groups );
+		$validated_data = $_SESSION[ self::SESSION_KEY ] ?? array();
+
+		// Store both group ID and password hash for re-validation.
+		$validated_data[ $group_id ] = array(
+			'group_id'      => $group_id,
+			'password_hash' => $this->hash_password_for_session( $password ),
+			'timestamp'     => time(),
+		);
+
+		$_SESSION[ self::SESSION_KEY ] = $validated_data;
 	}
 
 	/**
-	 * Check if password group is validated.
+	 * Check if password group is validated and password is still valid.
 	 *
 	 * @param int $group_id Password group ID.
 	 * @return bool
@@ -171,8 +179,25 @@ class PasswordManager {
 			session_start();
 		}
 
-		$validated_groups = $_SESSION[ self::SESSION_KEY ] ?? array();
-		return in_array( $group_id, $validated_groups, true );
+		$validated_data = $_SESSION[ self::SESSION_KEY ] ?? array();
+
+		// Check if group is in session data.
+		if ( ! isset( $validated_data[ $group_id ] ) ) {
+			return false;
+		}
+
+		$session_data         = $validated_data[ $group_id ];
+		$stored_password_hash = $session_data['password_hash'] ?? '';
+
+		// Re-validate the stored password against current password group data.
+		if ( ! $this->revalidate_stored_password( $group_id, $stored_password_hash ) ) {
+			// Password is no longer valid, remove from session.
+			unset( $validated_data[ $group_id ] );
+			$_SESSION[ self::SESSION_KEY ] = $validated_data;
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -246,6 +271,58 @@ class PasswordManager {
 			}
 		}
 
+		return false;
+	}
+
+	/**
+	 * Hash password for session storage.
+	 *
+	 * @param string $password Plain text password.
+	 * @return string Hashed password.
+	 */
+	private function hash_password_for_session( $password ) {
+		// Use a combination of password and a salt for session storage.
+		// This is different from database storage to add an extra layer of security.
+		return hash( 'sha256', $password . wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Re-validate stored password against current password group data.
+	 *
+	 * @param int    $group_id Password group ID.
+	 * @param string $stored_password_hash Stored password hash from session.
+	 * @return bool True if password is still valid, false otherwise.
+	 */
+	private function revalidate_stored_password( $group_id, $stored_password_hash ) {
+		// Get current password group data.
+		$password_group = Database::get_password_group( $group_id );
+		if ( ! $password_group ) {
+			// Group no longer exists.
+			return false;
+		}
+
+		// Check master password.
+		if ( ! empty( $password_group->master_password ) ) {
+			$master_hash = $this->hash_password_for_session( $password_group->master_password );
+			if ( hash_equals( $stored_password_hash, $master_hash ) ) {
+				return true;
+			}
+		}
+
+		// Check additional passwords.
+		if ( ! empty( $password_group->additional_passwords ) ) {
+			$additional_passwords = json_decode( $password_group->additional_passwords, true );
+			if ( is_array( $additional_passwords ) ) {
+				foreach ( $additional_passwords as $additional_password ) {
+					$additional_hash = $this->hash_password_for_session( $additional_password );
+					if ( hash_equals( $stored_password_hash, $additional_hash ) ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		// Password not found in current group data.
 		return false;
 	}
 
