@@ -464,6 +464,8 @@ class PasswordGroups {
 		global $post_type;
 
 		if ( 'ppe_password_group' === $post_type && ( 'post.php' === $hook || 'post-new.php' === $hook ) ) {
+			// Enqueue WordPress core password strength meter.
+			wp_enqueue_script( 'password-strength-meter' );
 			wp_enqueue_script( 'ppe-password-groups-js', PPE_PLUGIN_URL . 'assets/admin/js/password-groups.js', array( 'jquery' ), PPE_VERSION, true );
 			wp_enqueue_style( 'ppe-password-groups-css', PPE_PLUGIN_URL . 'assets/admin/css/password-groups.css', array(), PPE_VERSION );
 
@@ -476,6 +478,12 @@ class PasswordGroups {
 						'enterPassword'          => __( 'Enter additional password', 'password-protect-elite' ),
 						'remove'                 => __( 'Remove', 'password-protect-elite' ),
 						'masterPasswordRequired' => __( 'Master password is required.', 'password-protect-elite' ),
+						'strength'               => __( 'Strength', 'password-protect-elite' ),
+						'veryWeak'               => _x( 'Very weak', 'password strength', 'password-protect-elite' ),
+						'weak'                   => _x( 'Weak', 'password strength', 'password-protect-elite' ),
+						'medium'                 => _x( 'Medium', 'password strength', 'password-protect-elite' ),
+						'strong'                 => _x( 'Strong', 'password strength', 'password-protect-elite' ),
+						'veryStrong'             => _x( 'Very strong', 'password strength', 'password-protect-elite' ),
 					),
 				)
 			);

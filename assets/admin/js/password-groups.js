@@ -8,6 +8,65 @@
     'use strict';
 
     $(document).ready(function() {
+        // Password strength meter helpers
+        function getStrengthLabel(score) {
+            var labels = ppeCptAdmin && ppeCptAdmin.strings ? ppeCptAdmin.strings : {};
+            switch (score) {
+                case 4: return labels.veryStrong || 'Very strong';
+                case 3: return labels.strong || 'Strong';
+                case 2: return labels.medium || 'Medium';
+                case 1: return labels.weak || 'Weak';
+                default: return labels.veryWeak || 'Very weak';
+            }
+        }
+
+        function ensureStrengthUi($input) {
+            if ($input.length === 0) return $();
+            var $existing = $input.next('.ppe-password-strength');
+            if ($existing.length) return $existing;
+
+            var $ui = $('<div class="ppe-password-strength">' +
+                '<div class="ppe-strength-bar" aria-hidden="true"></div>' +
+                '<span class="ppe-strength-text"></span>' +
+            '</div>');
+            $input.after($ui);
+            return $ui;
+        }
+
+        function meterScore(password) {
+            try {
+                if (typeof wp !== 'undefined' && wp.passwordStrength && typeof wp.passwordStrength.meter === 'function') {
+                    // Third argument is confirm field; we don't use it here
+                    return wp.passwordStrength.meter(password, [], '');
+                }
+            } catch (e) {}
+            // Fallback naive scoring
+            var score = 0;
+            if (!password) return 0;
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+            return Math.max(0, Math.min(4, score));
+        }
+
+        function attachStrengthMeter($input) {
+            var $ui = ensureStrengthUi($input);
+            var $text = $ui.find('.ppe-strength-text');
+
+            function update() {
+                var val = ($input.val() || '').trim();
+                var score = meterScore(val);
+                var label = getStrengthLabel(score);
+                $ui.removeClass('strength-0 strength-1 strength-2 strength-3 strength-4')
+                   .addClass('strength-' + score);
+                $text.text(label);
+            }
+
+            $input.on('input keyup change', update);
+            update();
+        }
+
         // Handle adding additional passwords
         $('#ppe-add-additional-password').on('click', function(e) {
             e.preventDefault();
@@ -22,6 +81,9 @@
 
             // Focus on the new input field
             newField.find('input').focus();
+
+            // Attach strength meter to the new additional password input
+            attachStrengthMeter(newField.find('input'));
         });
 
         // Handle removing additional passwords
@@ -148,6 +210,12 @@
             if ($(this).val().trim() === '') {
                 $removeBtn.prop('disabled', true);
             }
+        });
+
+        // Attach strength meters to existing fields
+        attachStrengthMeter($('#ppe_master_password'));
+        $('input[name="ppe_additional_passwords[]"]').each(function() {
+            attachStrengthMeter($(this));
         });
     });
 

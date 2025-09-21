@@ -695,7 +695,7 @@ class Settings {
 	 */
 	public function render_messages_tab() {
 		?>
-		<div class="ppe-tab-content">
+		<div class="ppe-tab-content ppe-messages-tab">
 			<?php $this->render_messages_section_description(); ?>
 
 			<?php
@@ -704,7 +704,7 @@ class Settings {
 			$customizable_strings = $string_manager->get_customizable_strings();
 			?>
 
-			<table class="form-table" role="presentation">
+			<table class="form-table ppe-messages-table" role="presentation">
 				<?php foreach ( $customizable_strings as $key => $string_config ) : ?>
 					<tr>
 						<th scope="row">

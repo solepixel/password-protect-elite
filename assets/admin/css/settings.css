@@ -79,8 +79,16 @@
 }
 
 .ppe-string-field input[type="text"] {
-	width: 100%;
-	max-width: 500px;
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Widen Messages tab inputs */
+.ppe-messages-tab .ppe-string-field input[type="text"],
+.ppe-messages-tab .form-table input[type="text"],
+.ppe-messages-table input[type="text"] {
+    width: 100%;
+    max-width: 100%;
 }
 
 .ppe-string-field .description {
