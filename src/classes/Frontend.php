@@ -104,8 +104,14 @@ class Frontend {
 			return; // User has already validated.
 		}
 
-		// Show password form for auto-protected URL.
-		$this->show_auto_protection_form( $auto_protect_group );
+		// Handle unauthenticated behavior via shared helper.
+		AccessController::handle_unauthenticated_behavior(
+			$auto_protect_group,
+			function () use ( $auto_protect_group ) {
+				$this->show_auto_protection_form( $auto_protect_group );
+			}
+		);
+		return;
 	}
 
 	/**

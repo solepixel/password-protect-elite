@@ -237,8 +237,15 @@ class PageProtection {
 			return; // User has already validated.
 		}
 
-		// Show password form.
-		$this->show_password_form( $page_protection );
+		// Use shared helper for unauthenticated handling.
+		$password_group = Database::get_password_group( $page_protection->password_group_id );
+		AccessController::handle_unauthenticated_behavior(
+			$password_group,
+			function () use ( $page_protection ) {
+				$this->show_password_form( $page_protection );
+			}
+		);
+		return;
 	}
 
 	/**
