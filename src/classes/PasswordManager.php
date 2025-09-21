@@ -317,6 +317,35 @@ class PasswordManager {
 	}
 
 	/**
+	 * Determine if current user has access to a specific password group via either
+	 * a validated password session or role-based bypass configured on the group.
+	 *
+	 * @param int $group_id Password group ID.
+	 * @return bool True if user may access, false otherwise.
+	 */
+	public function has_access_to_group( $group_id ) {
+		// Password validated session grants access.
+		if ( $this->is_password_validated( $group_id ) ) {
+			return true;
+		}
+
+		// Role-based bypass if user is logged in and has a permitted role.
+		$group = Database::get_password_group( $group_id );
+		if ( $group && ! empty( $group->allowed_roles ) && is_user_logged_in() ) {
+			$user = wp_get_current_user();
+			if ( $user && ! empty( $user->roles ) ) {
+				foreach ( (array) $user->roles as $role_slug ) {
+					if ( in_array( $role_slug, (array) $group->allowed_roles, true ) ) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Hash password for session storage.
 	 *
 	 * @param string $password Plain text password.

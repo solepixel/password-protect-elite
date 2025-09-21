@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use PasswordProtectElite\Database;
 use PasswordProtectElite\PasswordManager;
+use PasswordProtectElite\Blocks;
 
 /**
  * Render the protected content block.
@@ -35,8 +36,8 @@ function render_protected_content_block( $attributes, $content ) {
 
 	$password_manager = new PasswordManager();
 
-	// Check if content is accessible.
-	if ( $password_manager->is_content_accessible( $allowed_groups ) ) {
+    // Check if content is accessible (password or role-based access).
+    if ( Blocks::get_authenticated_group_id( $allowed_groups ) > 0 ) {
 		return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
 	} else {
 		// Show password form.

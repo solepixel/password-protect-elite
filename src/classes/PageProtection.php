@@ -252,11 +252,10 @@ class PageProtection {
 			return;
 		}
 
-		// Check if user has already validated this password group.
+		// Check if user already has access via password or role.
 		$password_manager = new PasswordManager();
-
-		if ( $password_manager->is_password_validated( $page_protection->password_group_id ) ) {
-			return; // User has already validated.
+		if ( $password_manager->has_access_to_group( $page_protection->password_group_id ) ) {
+			return; // User already has access.
 		}
 
 		// Use shared helper for unauthenticated handling.

@@ -57,11 +57,11 @@ class Frontend {
 			return;
 		}
 
-		// Check if user has already validated any global password.
+		// Check if user has already validated or has role-based access for any global group.
 		$password_manager = new PasswordManager();
 		foreach ( $global_groups as $group ) {
-			if ( $password_manager->is_password_validated( $group->id ) ) {
-				return; // User has already validated.
+			if ( $password_manager->has_access_to_group( $group->id ) ) {
+				return; // User already has access.
 			}
 		}
 
@@ -98,10 +98,10 @@ class Frontend {
 			return;
 		}
 
-		// Check if user has already validated this password group.
+		// Check if user has already validated or has role-based access for this group.
 		$password_manager = new PasswordManager();
-		if ( $password_manager->is_password_validated( $auto_protect_group->id ) ) {
-			return; // User has already validated.
+		if ( $password_manager->has_access_to_group( $auto_protect_group->id ) ) {
+			return; // User already has access.
 		}
 
 		// Handle unauthenticated behavior via shared helper.

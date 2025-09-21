@@ -125,6 +125,7 @@ class PasswordGroups {
 		$unauthenticated_redirect_custom_url = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_custom_url', true );
 		$exclude_urls         = get_post_meta( $post->ID, '_ppe_exclude_urls', true );
 		$auto_protect_urls    = get_post_meta( $post->ID, '_ppe_auto_protect_urls', true );
+		$allowed_roles        = get_post_meta( $post->ID, '_ppe_allowed_roles', true );
 
 		if ( empty( $additional_passwords ) || ! is_array( $additional_passwords ) ) {
 			$additional_passwords = array();
@@ -158,24 +159,56 @@ class PasswordGroups {
 					<p class="description"><?php esc_html_e( 'The primary password for this group.', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
-			<tr>
-				<th scope="row"><?php esc_html_e( 'Additional Passwords', 'password-protect-elite' ); ?></th>
-				<td>
-					<div id="ppe-additional-passwords-wrapper">
-						<?php if ( ! empty( $additional_passwords ) ) : ?>
-							<?php foreach ( $additional_passwords as $index => $additional_password ) : ?>
-								<div class="ppe-additional-password-item">
-									<input type="text" name="ppe_additional_passwords[]" value="<?php echo esc_attr( $additional_password ); ?>" class="regular-text">
-									<button type="button" class="button button-secondary ppe-remove-additional-password"><?php esc_html_e( 'Remove', 'password-protect-elite' ); ?></button>
-								</div>
-							<?php endforeach; ?>
-						<?php endif; ?>
-					</div>
-					<button type="button" class="button button-secondary" id="ppe-add-additional-password"><?php esc_html_e( 'Add Additional Password', 'password-protect-elite' ); ?></button>
-					<p class="description"><?php esc_html_e( 'Other passwords that grant access to this group.', 'password-protect-elite' ); ?></p>
-				</td>
-			</tr>
 		</table>
+
+		<!-- Additional Access Options Section -->
+		<fieldset class="ppe-additional-access-section">
+			<legend><h3><?php esc_html_e( 'Additional Access Options', 'password-protect-elite' ); ?></h3></legend>
+			<p class="description"><?php esc_html_e( 'Configure additional access methods that grant users access without entering a password.', 'password-protect-elite' ); ?></p>
+			<table class="form-table">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Additional Passwords', 'password-protect-elite' ); ?></th>
+					<td>
+						<div id="ppe-additional-passwords-wrapper">
+							<?php if ( ! empty( $additional_passwords ) ) : ?>
+								<?php foreach ( $additional_passwords as $index => $additional_password ) : ?>
+									<div class="ppe-additional-password-item">
+										<input type="text" name="ppe_additional_passwords[]" value="<?php echo esc_attr( $additional_password ); ?>" class="regular-text">
+										<button type="button" class="button button-secondary ppe-remove-additional-password"><?php esc_html_e( 'Remove', 'password-protect-elite' ); ?></button>
+									</div>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</div>
+						<button type="button" class="button button-secondary" id="ppe-add-additional-password"><?php esc_html_e( 'Add Additional Password', 'password-protect-elite' ); ?></button>
+						<p class="description"><?php esc_html_e( 'Other passwords that grant access to this group.', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'User Roles', 'password-protect-elite' ); ?></th>
+					<td>
+						<?php
+						if ( empty( $allowed_roles ) || ! is_array( $allowed_roles ) ) {
+							$allowed_roles = array();
+						}
+						$roles = function_exists( 'get_editable_roles' ) ? get_editable_roles() : array();
+						if ( ! empty( $roles ) ) :
+						?>
+							<div class="ppe-roles-checkboxes">
+								<?php foreach ( $roles as $role_slug => $role_info ) : ?>
+									<label style="display:block;margin-bottom:4px;">
+										<input type="checkbox" name="ppe_allowed_roles[]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( in_array( $role_slug, $allowed_roles, true ) ); ?>>
+										<?php echo esc_html( translate_user_role( $role_info['name'] ) ); ?>
+									</label>
+								<?php endforeach; ?>
+							</div>
+						<?php else : ?>
+							<em><?php esc_html_e( 'No editable roles found.', 'password-protect-elite' ); ?></em>
+						<?php endif; ?>
+						<p class="description"><?php esc_html_e( 'Users with any selected role automatically have access (no password required).', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
 
 		<!-- Protection Type and URL Settings Section -->
 		<fieldset class="ppe-protection-type-section">
@@ -343,6 +376,19 @@ class PasswordGroups {
 			update_post_meta( $post_id, '_ppe_additional_passwords', $additional_passwords );
 		} else {
 			delete_post_meta( $post_id, '_ppe_additional_passwords' );
+		}
+
+		// Sanitize and save allowed roles.
+		if ( isset( $_POST['ppe_allowed_roles'] ) && is_array( $_POST['ppe_allowed_roles'] ) ) {
+			$roles = array_map( 'sanitize_key', wp_unslash( $_POST['ppe_allowed_roles'] ) );
+			$roles = array_values( array_unique( array_filter( $roles ) ) );
+			if ( ! empty( $roles ) ) {
+				update_post_meta( $post_id, '_ppe_allowed_roles', $roles );
+			} else {
+				delete_post_meta( $post_id, '_ppe_allowed_roles' );
+			}
+		} else {
+			delete_post_meta( $post_id, '_ppe_allowed_roles' );
 		}
 
 		// Sanitize and save protection type.

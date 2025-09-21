@@ -77,10 +77,15 @@ class Database {
 			'redirect_type'        => get_post_meta( $post->ID, '_ppe_redirect_type', true ),
 			'redirect_page_id'     => get_post_meta( $post->ID, '_ppe_redirect_page_id', true ),
 			'redirect_custom_url'  => get_post_meta( $post->ID, '_ppe_redirect_custom_url', true ),
+			'allowed_roles'        => get_post_meta( $post->ID, '_ppe_allowed_roles', true ),
 		);
 
 		if ( empty( $group->additional_passwords ) || ! is_array( $group->additional_passwords ) ) {
 			$group->additional_passwords = array();
+		}
+
+		if ( empty( $group->allowed_roles ) || ! is_array( $group->allowed_roles ) ) {
+			$group->allowed_roles = array();
 		}
 
 		return $group;

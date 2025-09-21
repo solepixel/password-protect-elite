@@ -190,16 +190,9 @@ class Blocks {
 
 		$password_manager = new PasswordManager();
 
-		// Check if user is already authenticated for any of the allowed groups.
-		$is_authenticated = false;
-		$authenticated_group = null;
-		foreach ( $allowed_groups as $group_id ) {
-			if ( $password_manager->is_password_validated( $group_id ) ) {
-				$is_authenticated = true;
-				$authenticated_group = $group_id;
-				break;
-			}
-		}
+		// Determine if user has access via password validation or role-based bypass.
+		$authenticated_group = self::get_authenticated_group_id( $allowed_groups );
+		$is_authenticated   = ( $authenticated_group > 0 );
 
 		// If user is already authenticated, show message instead of form.
 		if ( $is_authenticated ) {
@@ -283,8 +276,8 @@ class Blocks {
 
 		$password_manager = new PasswordManager();
 
-		// Check if content is accessible.
-		if ( $password_manager->is_content_accessible( $allowed_groups ) ) {
+		// Check if content is accessible (password or role-based access).
+		if ( self::get_authenticated_group_id( $allowed_groups ) > 0 ) {
 			return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
 		} else {
 			// Show password form.
@@ -304,5 +297,45 @@ class Blocks {
 				' . $form_html . '
 			</div>';
 		}
+	}
+
+	/**
+	 * Get the first allowed group ID for which the current user is considered authenticated
+	 * either via a validated password or via a role-based bypass. Returns 0 if none.
+	 *
+	 * @param array $allowed_groups Allowed password group IDs.
+	 * @return int Group ID if authenticated; 0 otherwise.
+	 */
+	public static function get_authenticated_group_id( $allowed_groups ) {
+		$manager = new PasswordManager();
+		if ( empty( $allowed_groups ) ) {
+			return 0;
+		}
+
+		// First, check password validation as before.
+		foreach ( $allowed_groups as $group_id ) {
+			if ( $manager->is_password_validated( $group_id ) ) {
+				return $group_id;
+			}
+		}
+
+		// Next, check role-based bypass if logged in.
+		if ( is_user_logged_in() ) {
+			$user = wp_get_current_user();
+			if ( $user && ! empty( $user->roles ) ) {
+				foreach ( $allowed_groups as $group_id ) {
+					$group = Database::get_password_group( $group_id );
+					if ( $group && ! empty( $group->allowed_roles ) ) {
+						foreach ( (array) $user->roles as $role_slug ) {
+							if ( in_array( $role_slug, (array) $group->allowed_roles, true ) ) {
+								return $group_id;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return 0;
 	}
 }
