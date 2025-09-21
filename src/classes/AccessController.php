@@ -43,11 +43,26 @@ class AccessController {
 			$page_id = absint( get_post_meta( $password_group->id, '_ppe_unauthenticated_redirect_page_id', true ) );
 			$custom  = esc_url_raw( get_post_meta( $password_group->id, '_ppe_unauthenticated_redirect_custom_url', true ) );
 			if ( $page_id ) {
-				wp_safe_redirect( get_permalink( $page_id ) );
+				$target = get_permalink( $page_id );
+				$target = add_query_arg(
+					array(
+						'ppe_auth_required' => '1',
+						'ppe_group'         => (string) $password_group->id,
+					),
+					$target
+				);
+				wp_safe_redirect( $target );
 				exit;
 			}
 			if ( ! empty( $custom ) ) {
-				wp_safe_redirect( $custom );
+				$target = add_query_arg(
+					array(
+						'ppe_auth_required' => '1',
+						'ppe_group'         => (string) $password_group->id,
+					),
+					$custom
+				);
+				wp_safe_redirect( $target );
 				exit;
 			}
 			// If redirect configured but invalid, fall through to dialog.

@@ -244,6 +244,17 @@ class Blocks {
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
+		// If redirected due to authentication requirement, and this form supports the same group,
+		// populate the existing error message element so it inherits the same styling.
+		if ( isset( $_GET['ppe_auth_required'] ) && '1' === $_GET['ppe_auth_required'] ) {
+			$redirect_group = isset( $_GET['ppe_group'] ) ? absint( $_GET['ppe_group'] ) : 0;
+			if ( $redirect_group && ( empty( $allowed_groups ) || in_array( $redirect_group, $allowed_groups, true ) ) ) {
+				$auth_required_message = $string_manager->get_string( 'auth_required_message' );
+				$replacement = '<div class="ppe-error-message" style="display: block;">' . esc_html( $auth_required_message ) . '</div>';
+				$form_html  = str_replace( '<div class="ppe-error-message" style="display: none;"></div>', $replacement, $form_html );
+			}
+		}
+
 		return '<div class="ppe-password-entry-block">' . $form_html . '</div>';
 	}
 

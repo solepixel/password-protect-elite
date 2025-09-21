@@ -84,6 +84,11 @@ class StringManager {
 				'default' => __( 'You have already authenticated for this content.', 'password-protect-elite' ),
 				'description' => __( 'Message shown when user has already authenticated for the password group.', 'password-protect-elite' ),
 			),
+			'auth_required_message' => array(
+				'label' => __( 'Authentication Required Message', 'password-protect-elite' ),
+				'default' => __( 'You must log in before accessing that page.', 'password-protect-elite' ),
+				'description' => __( 'Message shown when a user is redirected to a password form due to authentication requirements.', 'password-protect-elite' ),
+			),
 		);
 	}
 
