@@ -84,6 +84,9 @@ class PPE_GitHub_Updater {
 		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_updates' ) );
 		add_filter( 'plugins_api', array( $this, 'plugin_api_call' ), 10, 3 );
 		add_filter( 'upgrader_pre_download', array( $this, 'upgrader_pre_download' ), 10, 2 );
+		add_filter( 'auto_update_plugin', array( $this, 'enable_auto_updates' ), 10, 2 );
+		add_action( 'admin_init', array( $this, 'maybe_auto_update' ) );
+		add_action( 'admin_notices', array( $this, 'auto_update_notice' ) );
 	}
 
 	/**
@@ -308,5 +311,147 @@ class PPE_GitHub_Updater {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Enable auto-updates for this plugin.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool|null $update Whether to update the plugin. Null if not set.
+	 * @param object    $item  The update offer.
+	 * @return bool Whether to update the plugin.
+	 */
+	public function enable_auto_updates( $update, $item ) {
+		// Only enable auto-updates for this specific plugin.
+		if ( isset( $item->plugin ) && plugin_basename( $this->plugin_file ) === $item->plugin ) {
+			return true;
+		}
+
+		return $update;
+	}
+
+	/**
+	 * Check if auto-updates are enabled and perform update if needed.
+	 *
+	 * @since 1.0.0
+	 */
+	public function maybe_auto_update() {
+		// Only run on admin pages and if auto-updates are enabled.
+		if ( ! is_admin() || ! wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
+			return;
+		}
+
+		// Check if auto-updates are enabled for this plugin specifically.
+		$auto_updates    = (array) get_site_option( 'auto_update_plugins', array() );
+		$plugin_basename = plugin_basename( $this->plugin_file );
+
+		if ( ! in_array( $plugin_basename, $auto_updates, true ) ) {
+			return;
+		}
+
+		// Check for updates.
+		$update_plugins = get_site_transient( 'update_plugins' );
+		if ( ! isset( $update_plugins->response[ $plugin_basename ] ) ) {
+			return;
+		}
+
+		$update = $update_plugins->response[ $plugin_basename ];
+
+		// Verify this is our plugin update.
+		if ( ! isset( $update->package ) || strpos( $update->package, 'api.github.com' ) === false ) {
+			return;
+		}
+
+		// Log the auto-update attempt.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+			error_log( sprintf( 'Password Protect Elite: Auto-update triggered for version %s', $update->new_version ) );
+		}
+
+		// The actual update will be handled by WordPress core.
+		// This method just ensures our plugin is eligible for auto-updates.
+	}
+
+	/**
+	 * Get plugin information for WordPress update system.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return array Plugin information.
+	 */
+	public function get_plugin_info() {
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		return get_plugin_data( $this->plugin_file );
+	}
+
+	/**
+	 * Check if the plugin is eligible for auto-updates.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @return bool Whether the plugin can be auto-updated.
+	 */
+	public function is_auto_update_eligible() {
+		$plugin_data = $this->get_plugin_info();
+		// Check WordPress version compatibility.
+		if ( version_compare( get_bloginfo( 'version' ), $plugin_data['RequiresAtLeast'], '<' ) ) {
+			return false;
+		}
+
+		// Check PHP version compatibility.
+		if ( version_compare( PHP_VERSION, $plugin_data['RequiresPHP'], '<' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Display admin notice about auto-update availability.
+	 *
+	 * @since 1.0.0
+	 */
+	public function auto_update_notice() {
+		// Only show on plugin pages.
+		$screen = get_current_screen();
+		if ( ! $screen || 'plugins' !== $screen->id ) {
+			return;
+		}
+
+		// Check if auto-updates are already enabled.
+		$auto_updates    = (array) get_site_option( 'auto_update_plugins', array() );
+		$plugin_basename = plugin_basename( $this->plugin_file );
+
+		if ( in_array( $plugin_basename, $auto_updates, true ) ) {
+			return; // Already enabled.
+		}
+
+		// Check if the plugin is eligible for auto-updates.
+		if ( ! $this->is_auto_update_eligible() ) {
+			return;
+		}
+
+		// Show the notice.
+		?>
+		<div class="notice notice-info is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'Password Protect Elite', 'password-protect-elite' ); ?></strong>
+				<?php
+				printf(
+					/* translators: %s: Plugin name */
+					esc_html__( 'supports WordPress auto-updates. You can enable automatic updates for this plugin in the %s.', 'password-protect-elite' ),
+					sprintf(
+						'<a href="%s">%s</a>',
+						esc_url( admin_url( 'plugins.php?plugin_status=upgrade' ) ),
+						esc_html__( 'Plugins page', 'password-protect-elite' )
+					)
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 }
