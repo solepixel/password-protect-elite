@@ -29,6 +29,7 @@ function render_protected_content_block( $attributes, $content ) {
 	$disable_form     = ! empty( $attributes['disableForm'] );
 	$fallback_message = $attributes['fallbackMessage'] ?? __( 'This content is password protected.', 'password-protect-elite' );
 	$class_name       = $attributes['className'] ?? '';
+	$align            = $attributes['align'] ?? '';
 
 	// If no groups are selected, allow all content-type and general groups.
 	if ( empty( $allowed_groups ) ) {
@@ -43,12 +44,12 @@ function render_protected_content_block( $attributes, $content ) {
 	// Role-based/capability-based access modes bypass password UI entirely.
 	if ( 'roles' === $access_mode ) {
 		if ( is_user_logged_in() ) {
-			$user = wp_get_current_user();
+			$user  = wp_get_current_user();
 			$roles = is_array( $allowed_roles ) ? $allowed_roles : array();
 			if ( $user && ! empty( $user->roles ) && ! empty( $roles ) ) {
 				foreach ( (array) $user->roles as $role_slug ) {
 					if ( in_array( $role_slug, $roles, true ) ) {
-						return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+						return $content;
 					}
 				}
 			}
@@ -62,7 +63,7 @@ function render_protected_content_block( $attributes, $content ) {
 		if ( ! empty( $caps ) ) {
 			foreach ( $caps as $cap ) {
 				if ( current_user_can( sanitize_key( $cap ) ) ) {
-					return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+					return $content;
 				}
 			}
 		}
@@ -71,7 +72,7 @@ function render_protected_content_block( $attributes, $content ) {
 
 	// Default (groups): show content if authenticated via password or role-based bypass for any selected group.
 	if ( Blocks::get_authenticated_group_id( $allowed_groups ) > 0 ) {
-		return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+		return $content;
 	} else {
 		// Show password form only if there are password groups selected and form is not disabled.
 		if ( empty( $allowed_groups ) || $disable_form ) {
@@ -89,7 +90,17 @@ function render_protected_content_block( $attributes, $content ) {
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
-		return '<div class="ppe-protected-content-block ppe-locked ' . esc_attr( $class_name ) . '">
+		// Build CSS classes including alignment.
+		$wrapper_classes = array( 'ppe-protected-content-block', 'ppe-locked' );
+		if ( ! empty( $class_name ) ) {
+			$wrapper_classes[] = $class_name;
+		}
+		if ( ! empty( $align ) ) {
+			$wrapper_classes[] = 'align' . $align;
+		}
+		$wrapper_class_string = implode( ' ', array_filter( $wrapper_classes ) );
+
+		return '<div class="' . esc_attr( $wrapper_class_string ) . '">
 			<div class="ppe-protected-message">' . esc_html( $fallback_message ) . '</div>
 			' . $form_html . '
 		</div>';

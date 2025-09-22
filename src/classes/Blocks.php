@@ -263,16 +263,17 @@ class Blocks {
 	 * @return string
 	 */
 	public function render_protected_content_block( $attributes, $content ) {
-		$allowed_groups          = $attributes['allowedGroups'] ?? array();
-		$access_mode             = $attributes['accessMode'] ?? 'groups';
-		$allowed_roles           = $attributes['allowedRoles'] ?? array();
-		$allowed_capabilities    = $attributes['allowedCapabilities'] ?? array();
-		$disable_form            = ! empty( $attributes['disableForm'] );
+		$allowed_groups       = $attributes['allowedGroups'] ?? array();
+		$access_mode          = $attributes['accessMode'] ?? 'groups';
+		$allowed_roles        = $attributes['allowedRoles'] ?? array();
+		$allowed_capabilities = $attributes['allowedCapabilities'] ?? array();
+		$disable_form         = ! empty( $attributes['disableForm'] );
 
 		// Get global strings for defaults.
-		$string_manager    = new \PasswordProtectElite\Admin\StringManager();
-		$fallback_message  = $attributes['fallbackMessage'] ?? $string_manager->get_string( 'default_fallback_message' );
-		$class_name        = $attributes['className'] ?? '';
+		$string_manager   = new \PasswordProtectElite\Admin\StringManager();
+		$fallback_message = $attributes['fallbackMessage'] ?? $string_manager->get_string( 'default_fallback_message' );
+		$class_name       = $attributes['className'] ?? '';
+		$align            = $attributes['align'] ?? '';
 
 		$password_manager = new PasswordManager();
 
@@ -284,7 +285,7 @@ class Blocks {
 				if ( $user && ! empty( $user->roles ) && ! empty( $roles ) ) {
 					foreach ( (array) $user->roles as $role_slug ) {
 						if ( in_array( $role_slug, $roles, true ) ) {
-							return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+							return $content;
 						}
 					}
 				}
@@ -298,7 +299,7 @@ class Blocks {
 			if ( ! empty( $caps ) ) {
 				foreach ( $caps as $cap ) {
 					if ( current_user_can( sanitize_key( $cap ) ) ) {
-						return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+						return $content;
 					}
 				}
 			}
@@ -307,7 +308,7 @@ class Blocks {
 
 		// Access Mode: groups (default). Use password validation or role-based bypass per group.
 		if ( self::get_authenticated_group_id( $allowed_groups ) > 0 ) {
-			return '<div class="ppe-protected-content-block ' . esc_attr( $class_name ) . '">' . $content . '</div>';
+			return $content;
 		}
 
 		// Show password form only if specific groups are selected and form is not disabled; otherwise empty.
@@ -326,7 +327,17 @@ class Blocks {
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
-		return '<div class="ppe-protected-content-block ppe-locked ' . esc_attr( $class_name ) . '">
+		// Build CSS classes including alignment.
+		$wrapper_classes = array( 'ppe-protected-content-block', 'ppe-locked' );
+		if ( ! empty( $class_name ) ) {
+			$wrapper_classes[] = $class_name;
+		}
+		if ( ! empty( $align ) ) {
+			$wrapper_classes[] = 'align' . $align;
+		}
+		$wrapper_class_string = implode( ' ', array_filter( $wrapper_classes ) );
+
+		return '<div class="' . esc_attr( $wrapper_class_string ) . '">
 			<div class="ppe-protected-message">' . esc_html( $fallback_message ) . '</div>
 			' . $form_html . '
 		</div>';
