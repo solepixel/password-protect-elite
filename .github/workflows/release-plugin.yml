@@ -1,0 +1,150 @@
+name: Release Password Protect Elite Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags like v1.0.0, v1.1.0, etc.
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for proper versioning
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+          coverage: none
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Remove 'v' prefix from tag (e.g., v1.0.0 -> 1.0.0)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Install Node dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          fi
+
+      - name: Install PHP dependencies
+        run: |
+          if [ -f composer.json ]; then
+            composer install --no-dev --prefer-dist --no-interaction --no-progress
+          fi
+
+      - name: Build assets
+        run: |
+          if [ -f package.json ]; then
+            npm run build
+          fi
+
+      - name: Update plugin version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PLUGIN_FILE="password-protect-elite.php"
+
+          # Update version in plugin header
+          sed -i "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $VERSION/" "$PLUGIN_FILE"
+
+          # Update version constant
+          sed -i "s/const PPE_VERSION = '[^']*'/const PPE_VERSION = '$VERSION'/" "$PLUGIN_FILE"
+
+          # Update stable tag in readme.txt
+          sed -i "s/Stable tag: [0-9]\+\.[0-9]\+\.[0-9]\+/Stable tag: $VERSION/" "readme.txt"
+
+          echo "Updated version to $VERSION"
+
+      - name: Create plugin zip
+        run: |
+          zip -r "password-protect-elite-${{ steps.version.outputs.version }}.zip" . \
+            -x ".git/*" \
+               ".github/*" \
+               "node_modules/*" \
+               "src/*" \
+               "package.json" \
+               "package-lock.json" \
+               "composer.json" \
+               "composer.lock" \
+               "webpack.config.js" \
+               "prettier.config.js" \
+               ".DS_Store" \
+               "**/.DS_Store" \
+               "**/*.map" \
+               "scripts/*" \
+               "RELEASE.md"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Previous tag: $PREVIOUS_TAG"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD --no-merges)
+          else
+            echo "No previous tag found"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          fi
+
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- Initial release"
+          fi
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Password Protect Elite ${{ steps.version.outputs.version }}
+          body: |
+            ## Changes in this release
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Installation
+
+            1. Download the plugin zip file
+            2. Go to WordPress Admin > Plugins > Add New > Upload Plugin
+            3. Upload the zip file and activate
+
+            ## Plugin Information
+
+            - **Version**: ${{ steps.version.outputs.version }}
+            - **Requires WordPress**: 5.0+
+            - **Tested up to**: 6.4+
+            - **Requires PHP**: 8.2+
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: password-protect-elite-${{ steps.version.outputs.version }}.zip
+          asset_name: password-protect-elite-${{ steps.version.outputs.version }}.zip
+          asset_content_type: application/zip

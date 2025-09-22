@@ -12,8 +12,9 @@
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.4
- * Requires PHP: 7.4
+ * Requires PHP: 8.2
  * Network: false
+ * GitHub Plugin URI: https://github.com/solepixel/password-protect-elite
  *
  * @package PasswordProtectElite
  */
@@ -46,5 +47,19 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 // Helper functions.
 require_once 'includes/helpers.php';
 
+// GitHub updater class.
+require_once 'includes/class-github-updater.php';
+
 // Initialize the plugin.
 ppelite();
+
+// Initialize GitHub updater (only in admin).
+if ( is_admin() ) {
+	// GitHub repository details for automatic updates
+	$github_updater = new PPE_GitHub_Updater(
+		__FILE__,
+		'solepixel', // GitHub username
+		'password-protect-elite', // GitHub repository name
+		'' // GitHub token (leave empty for public repos)
+	);
+}

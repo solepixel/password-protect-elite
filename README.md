@@ -80,7 +80,7 @@ Each password group supports:
 ### Prerequisites
 - Node.js 16.0.0 or higher
 - npm 8.0.0 or higher
-- PHP 7.4 or higher
+- PHP 8.2 or higher
 
 ### Setup
 ```bash

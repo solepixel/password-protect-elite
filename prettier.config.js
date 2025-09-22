@@ -84,5 +84,5 @@ module.exports = {
 	tailwindFunctions: ['clsx', 'cn'],
 
 	// PHP plugin options
-	phpVersion: '8.0',
+	phpVersion: '8.2',
 };
