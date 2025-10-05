@@ -37,7 +37,7 @@
 		"className": true,
 		"customClassName": true,
 		"anchor": true,
-		"align": true,
+		"alignWide": true,
 		"spacing": {
 			"margin": true,
 			"padding": true
