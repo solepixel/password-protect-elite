@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+	bootstrap="tests/bootstrap.php"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	stopOnFailure="false"
+	failOnWarning="false"
+	failOnRisky="false"
+	beStrictAboutOutputDuringTests="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+>
+	<testsuites>
+		<testsuite name="Password Protect Elite Test Suite">
+			<directory>tests/Unit</directory>
+		</testsuite>
+	</testsuites>
+	<coverage processUncoveredFiles="true">
+		<include>
+			<directory suffix=".php">src/classes</directory>
+		</include>
+		<exclude>
+			<directory>vendor</directory>
+			<directory>tests</directory>
+		</exclude>
+		<report>
+			<html outputDirectory="coverage-html"/>
+			<text outputFile="php://stdout" showOnlySummary="true"/>
+		</report>
+	</coverage>
+	<php>
+		<env name="WP_TESTS" value="1"/>
+		<const name="WP_TESTS_PHPUNIT_POLYFILLS_PATH" value="vendor/yoast/phpunit-polyfills"/>
+	</php>
+</phpunit>
+

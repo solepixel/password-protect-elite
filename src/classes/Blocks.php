@@ -223,6 +223,18 @@ class Blocks {
 				$output .= '<p><a href="' . esc_url( $final_redirect_url ) . '" class="ppe-redirect-link">' . esc_html( $link_text ) . '</a></p>';
 			}
 
+			// Add logout link - use WordPress logout URL which will also clear password sessions.
+			$logout_text = $string_manager->get_string( 'logout_link_text' );
+			if ( empty( $logout_text ) ) {
+				$logout_text = __( 'Log Out', 'password-protect-elite' );
+			}
+
+			// Determine redirect URL after logout based on password group settings.
+			$redirect_after_logout = $this->get_logout_redirect_url( $authenticated_group );
+			$logout_url            = wp_logout_url( $redirect_after_logout );
+
+			$output .= '<p><a href="' . esc_url( $logout_url ) . '" class="ppe-logout-link">' . esc_html( $logout_text ) . '</a></p>';
+
 			$output .= '</div>';
 			$output .= '</div>';
 
@@ -381,5 +393,44 @@ class Blocks {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Get logout redirect URL based on password group settings.
+	 *
+	 * @param int $group_id Password group ID.
+	 * @return string Redirect URL after logout.
+	 */
+	private function get_logout_redirect_url( $group_id ) {
+		// Default: stay on current page.
+		$protocol    = is_ssl() ? 'https://' : 'http://';
+		$host        = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+		$current_url = $protocol . $host . $request_uri;
+
+		if ( ! $group_id ) {
+			return $current_url;
+		}
+
+		// Get group logout redirect settings.
+		$logout_redirect_type = get_post_meta( $group_id, '_ppe_logout_redirect_type', true );
+
+		if ( 'page' === $logout_redirect_type ) {
+			$page_id = absint( get_post_meta( $group_id, '_ppe_logout_redirect_page_id', true ) );
+			if ( $page_id ) {
+				$page_url = get_permalink( $page_id );
+				if ( $page_url ) {
+					return $page_url;
+				}
+			}
+		} elseif ( 'custom_url' === $logout_redirect_type ) {
+			$custom_url = get_post_meta( $group_id, '_ppe_logout_redirect_custom_url', true );
+			if ( ! empty( $custom_url ) ) {
+				return esc_url_raw( $custom_url );
+			}
+		}
+
+		// Default: same page.
+		return $current_url;
 	}
 }

@@ -14,21 +14,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 
 /**
- * Handles password validation and session management.
+ * Handles password validation.
  */
 class PasswordManager {
 
 	/**
-	 * Session key for storing validated password groups.
+	 * Session key for storing validated password groups (for backward compatibility).
 	 *
 	 * @var string
 	 */
 	const SESSION_KEY = 'ppe_validated_groups';
 
 	/**
-	 * Constructor.
+	 * Cookie name for session identification (for backward compatibility).
+	 *
+	 * @var string
 	 */
-	public function __construct() {
+	const COOKIE_NAME = 'ppe_session_id';
+
+	/**
+	 * Session manager instance.
+	 *
+	 * @var SessionManager
+	 */
+	private $session_manager;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param SessionManager|null $session_manager Session manager instance (for dependency injection).
+	 */
+	public function __construct( $session_manager = null ) {
+		$this->session_manager = $session_manager ?? new SessionManager();
+
 		add_action( 'wp_ajax_ppe_validate_password', array( $this, 'ajax_validate_password' ) );
 		add_action( 'wp_ajax_nopriv_ppe_validate_password', array( $this, 'ajax_validate_password' ) );
 		add_action( 'init', array( $this, 'init_session' ) );
@@ -59,9 +77,7 @@ class PasswordManager {
 	 * Initialize session handling.
 	 */
 	public function init_session() {
-		if ( ! session_id() && ! headers_sent() ) {
-			session_start();
-		}
+		$this->session_manager->init();
 	}
 
 	/**
@@ -184,20 +200,8 @@ class PasswordManager {
 	 * @param string $password The password that was used for authentication.
 	 */
 	public function store_validated_password( $group_id, $password ) {
-		if ( ! session_id() ) {
-			session_start();
-		}
-
-		$validated_data = $_SESSION[ self::SESSION_KEY ] ?? array();
-
-		// Store both group ID and password hash for re-validation.
-		$validated_data[ $group_id ] = array(
-			'group_id'      => $group_id,
-			'password_hash' => $this->hash_password_for_session( $password ),
-			'timestamp'     => time(),
-		);
-
-		$_SESSION[ self::SESSION_KEY ] = $validated_data;
+		$password_hash = $this->hash_password_for_session( $password );
+		$this->session_manager->store_validated_group( $group_id, $password_hash );
 	}
 
 	/**
@@ -207,34 +211,27 @@ class PasswordManager {
 	 * @return bool
 	 */
 	public function is_password_validated( $group_id ) {
-		if ( ! session_id() ) {
-			session_start();
-		}
-
-		$validated_data = $_SESSION[ self::SESSION_KEY ] ?? array();
+		$session_data = $this->session_manager->get_validated_group( $group_id );
 
 		// Check if group is in session data.
-		if ( ! isset( $validated_data[ $group_id ] ) ) {
+		if ( ! $session_data ) {
 			return false;
 		}
 
-		$session_data         = $validated_data[ $group_id ];
 		$stored_password_hash = $session_data['password_hash'] ?? '';
 		$timestamp            = $session_data['timestamp'] ?? 0;
 
 		// Check if session has expired based on settings.
-		if ( $this->is_session_expired( $timestamp ) ) {
+		if ( $this->session_manager->is_session_expired( $timestamp ) ) {
 			// Session has expired, remove from session.
-			unset( $validated_data[ $group_id ] );
-			$_SESSION[ self::SESSION_KEY ] = $validated_data;
+			$this->session_manager->remove_validated_group( $group_id );
 			return false;
 		}
 
 		// Re-validate the stored password against current password group data.
 		if ( ! $this->revalidate_stored_password( $group_id, $stored_password_hash ) ) {
 			// Password is no longer valid, remove from session.
-			unset( $validated_data[ $group_id ] );
-			$_SESSION[ self::SESSION_KEY ] = $validated_data;
+			$this->session_manager->remove_validated_group( $group_id );
 			return false;
 		}
 
@@ -482,23 +479,6 @@ class PasswordManager {
 	}
 
 	/**
-	 * Check if session has expired based on settings.
-	 *
-	 * @param int $timestamp Session timestamp.
-	 * @return bool True if session has expired, false otherwise.
-	 */
-	private function is_session_expired( $timestamp ) {
-		// Get session duration in hours from settings.
-		$session_duration_hours = \PasswordProtectElite\Admin\Settings::get_session_duration_hours();
-
-		// Convert hours to seconds.
-		$session_duration_seconds = $session_duration_hours * 3600;
-
-		// Check if current time exceeds the session duration.
-		return ( time() - $timestamp ) > $session_duration_seconds;
-	}
-
-	/**
 	 * Re-validate stored password against current password group data.
 	 *
 	 * @param int    $group_id Password group ID.
@@ -522,14 +502,11 @@ class PasswordManager {
 		}
 
 		// Check additional passwords.
-		if ( ! empty( $password_group->additional_passwords ) ) {
-			$additional_passwords = json_decode( $password_group->additional_passwords, true );
-			if ( is_array( $additional_passwords ) ) {
-				foreach ( $additional_passwords as $additional_password ) {
-					$additional_hash = $this->hash_password_for_session( $additional_password );
-					if ( hash_equals( $stored_password_hash, $additional_hash ) ) {
-						return true;
-					}
+		if ( ! empty( $password_group->additional_passwords ) && is_array( $password_group->additional_passwords ) ) {
+			foreach ( $password_group->additional_passwords as $additional_password ) {
+				$additional_hash = $this->hash_password_for_session( $additional_password );
+				if ( hash_equals( $stored_password_hash, $additional_hash ) ) {
+					return true;
 				}
 			}
 		}

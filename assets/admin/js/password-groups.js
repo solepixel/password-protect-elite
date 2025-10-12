@@ -245,9 +245,26 @@
             // For 'general' and 'section' types, show all fields (default behavior)
         });
 
+        // Handle logout redirect type changes
+        $('#ppe_logout_redirect_type').on('change', function() {
+            var selectedType = $(this).val();
+
+            // Hide all logout redirect fields first
+            $('.ppe-logout-redirect-page-field, .ppe-logout-redirect-custom-url-field').hide();
+
+            // Show relevant field based on selection
+            if (selectedType === 'page') {
+                $('.ppe-logout-redirect-page-field').show();
+            } else if (selectedType === 'custom_url') {
+                $('.ppe-logout-redirect-custom-url-field').show();
+            }
+            // For 'same_page', no additional fields needed
+        });
+
         // Initialize all fields on page load to set correct initial state
         $('#ppe_redirect_type').trigger('change');
         $('#ppe_unauthenticated_behavior').trigger('change');
+        $('#ppe_logout_redirect_type').trigger('change');
         $('#ppe_protection_type').trigger('change');
 
         // Initialize remove button states

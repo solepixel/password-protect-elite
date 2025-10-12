@@ -97,14 +97,31 @@ class Core {
 	public ?BlockStyles $block_styles = null;
 
 	/**
+	 * Menu Integration functionality
+	 *
+	 * @var ?MenuIntegration
+	 */
+	public ?MenuIntegration $menu_integration = null;
+
+	/**
+	 * Session Manager
+	 *
+	 * @var ?SessionManager
+	 */
+	public ?SessionManager $session_manager = null;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
+		// Initialize session manager first (shared dependency).
+		$this->session_manager = new SessionManager();
+
 		// Initialize components.
 		$this->admin            = new Admin\Admin();
 		$this->admin_settings   = new Admin\Settings();
 		$this->admin_help       = new Admin\Help();
-		$this->password_manager = new PasswordManager();
+		$this->password_manager = new PasswordManager( $this->session_manager );
 		$this->database         = new Database();
 		$this->password_groups  = new PasswordGroups();
 		$this->blocks           = new Blocks();
@@ -112,6 +129,7 @@ class Core {
 		$this->page_protection  = new PageProtection();
 		$this->url_matcher      = new UrlMatcher();
 		$this->block_styles     = new BlockStyles();
+		$this->menu_integration = new MenuIntegration( $this->session_manager );
 	}
 
 	/**

@@ -94,6 +94,11 @@ class StringManager {
 				'default' => __( 'Continue to protected content', 'password-protect-elite' ),
 				'description' => __( 'Link text shown when a user is already authenticated and can continue to the protected content.', 'password-protect-elite' ),
 			),
+			'logout_link_text' => array(
+				'label' => __( 'Logout Link Text', 'password-protect-elite' ),
+				'default' => __( 'Log Out', 'password-protect-elite' ),
+				'description' => __( 'Link text for logging out of password-protected content.', 'password-protect-elite' ),
+			),
 		);
 	}
 

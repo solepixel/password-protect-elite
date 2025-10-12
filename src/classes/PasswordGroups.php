@@ -123,6 +123,9 @@ class PasswordGroups {
 		$unauthenticated_redirect_type = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_type', true );
 		$unauthenticated_redirect_page_id = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_page_id', true );
 		$unauthenticated_redirect_custom_url = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_custom_url', true );
+		$logout_redirect_type = get_post_meta( $post->ID, '_ppe_logout_redirect_type', true );
+		$logout_redirect_page_id = get_post_meta( $post->ID, '_ppe_logout_redirect_page_id', true );
+		$logout_redirect_custom_url = get_post_meta( $post->ID, '_ppe_logout_redirect_custom_url', true );
 		$exclude_urls         = get_post_meta( $post->ID, '_ppe_exclude_urls', true );
 		$auto_protect_urls    = get_post_meta( $post->ID, '_ppe_auto_protect_urls', true );
 		$allowed_roles        = get_post_meta( $post->ID, '_ppe_allowed_roles', true );
@@ -150,6 +153,11 @@ class PasswordGroups {
 		if ( empty( $unauthenticated_redirect_type ) ) {
 			$unauthenticated_redirect_type = 'page';
 		}
+
+		// Set default logout redirect type.
+		if ( empty( $logout_redirect_type ) ) {
+			$logout_redirect_type = 'same_page';
+		}
 		?>
 		<table class="form-table">
 			<tr>
@@ -162,7 +170,7 @@ class PasswordGroups {
 		</table>
 
 		<!-- Additional Access Options Section -->
-		<fieldset class="ppe-additional-access-section">
+		<fieldset class="ppe-behavior-section ppe-additional-access-section">
 			<legend><h3><?php esc_html_e( 'Additional Access Options', 'password-protect-elite' ); ?></h3></legend>
 			<p class="description"><?php esc_html_e( 'Configure additional access methods that grant users access without entering a password.', 'password-protect-elite' ); ?></p>
 			<table class="form-table">
@@ -211,7 +219,7 @@ class PasswordGroups {
 		</fieldset>
 
 		<!-- Protection Type and URL Settings Section -->
-		<fieldset class="ppe-protection-type-section">
+		<fieldset class="ppe-behavior-section ppe-protection-type-section">
 			<legend><h3><?php esc_html_e( 'Protection Type & URL Settings', 'password-protect-elite' ); ?></h3></legend>
 			<p class="description"><?php esc_html_e( 'Configure how this password group protects content and which URLs are affected.', 'password-protect-elite' ); ?></p>
 
@@ -285,7 +293,7 @@ class PasswordGroups {
 		</fieldset>
 
 		<!-- Unauthenticated Access Behavior Section -->
-		<fieldset class="ppe-unauthenticated-behavior-section">
+		<fieldset class="ppe-behavior-section ppe-unauthenticated-behavior-section">
 			<legend><h3><?php esc_html_e( 'Unauthenticated Access Behavior', 'password-protect-elite' ); ?></h3></legend>
 			<p class="description"><?php esc_html_e( 'Configure what happens when users try to access protected content without authentication.', 'password-protect-elite' ); ?></p>
 
@@ -334,6 +342,50 @@ class PasswordGroups {
 					<p class="description"><?php esc_html_e( 'Enter a full URL for unauthenticated users (e.g., https://example.com/login).', 'password-protect-elite' ); ?></p>
 				</td>
 			</tr>
+			</table>
+		</fieldset>
+
+		<!-- Log Out Behavior Section -->
+		<fieldset class="ppe-behavior-section ppe-logout-behavior-section">
+			<legend><h3><?php esc_html_e( 'Log Out Behavior', 'password-protect-elite' ); ?></h3></legend>
+			<p class="description"><?php esc_html_e( 'Configure where users are redirected after logging out of this password group.', 'password-protect-elite' ); ?></p>
+
+			<table class="form-table">
+				<tr>
+					<th scope="row"><label for="ppe_logout_redirect_type"><?php esc_html_e( 'Log Out Action', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<select name="ppe_logout_redirect_type" id="ppe_logout_redirect_type">
+							<option value="same_page" <?php selected( $logout_redirect_type, 'same_page' ); ?>><?php esc_html_e( 'Stay on the same page (Default)', 'password-protect-elite' ); ?></option>
+							<option value="page" <?php selected( $logout_redirect_type, 'page' ); ?>><?php esc_html_e( 'Redirect to an existing Page', 'password-protect-elite' ); ?></option>
+							<option value="custom_url" <?php selected( $logout_redirect_type, 'custom_url' ); ?>><?php esc_html_e( 'Redirect to a Custom URL', 'password-protect-elite' ); ?></option>
+						</select>
+						<p class="description"><?php esc_html_e( 'Where users are redirected after clicking the logout link.', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr class="ppe-logout-redirect-page-field" style="<?php echo ( 'page' === $logout_redirect_type ) ? '' : 'display:none !important;'; ?>">
+					<th scope="row"><label for="ppe_logout_redirect_page_id"><?php esc_html_e( 'Select Page', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<?php
+						wp_dropdown_pages(
+							array(
+								'name'              => 'ppe_logout_redirect_page_id',
+								'id'                => 'ppe_logout_redirect_page_id',
+								'selected'          => $logout_redirect_page_id,
+								'show_option_none'  => __( '— Select —', 'password-protect-elite' ),
+								'option_none_value' => 0,
+							)
+						);
+						?>
+						<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect users to after logout.', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
+				<tr class="ppe-logout-redirect-custom-url-field" style="<?php echo ( 'custom_url' === $logout_redirect_type ) ? '' : 'display:none !important;'; ?>">
+					<th scope="row"><label for="ppe_logout_redirect_custom_url"><?php esc_html_e( 'Custom Redirect URL', 'password-protect-elite' ); ?></label></th>
+					<td>
+						<input type="url" name="ppe_logout_redirect_custom_url" id="ppe_logout_redirect_custom_url" value="<?php echo esc_url( $logout_redirect_custom_url ); ?>" class="regular-text">
+						<p class="description"><?php esc_html_e( 'Enter a full URL to redirect users to after logout (e.g., https://example.com).', 'password-protect-elite' ); ?></p>
+					</td>
+				</tr>
 			</table>
 		</fieldset>
 		<?php
@@ -437,6 +489,18 @@ class PasswordGroups {
 				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_page_id' );
 				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_custom_url' );
 				delete_post_meta( $post_id, '_ppe_unauthenticated_redirect_type' );
+			}
+		}
+
+		// Save logout redirect settings.
+		if ( isset( $_POST['ppe_logout_redirect_type'] ) ) {
+			$logout_redirect_type = sanitize_text_field( wp_unslash( $_POST['ppe_logout_redirect_type'] ) );
+			update_post_meta( $post_id, '_ppe_logout_redirect_type', $logout_redirect_type );
+
+			if ( 'page' === $logout_redirect_type && isset( $_POST['ppe_logout_redirect_page_id'] ) ) {
+				update_post_meta( $post_id, '_ppe_logout_redirect_page_id', absint( wp_unslash( $_POST['ppe_logout_redirect_page_id'] ) ) );
+			} elseif ( 'custom_url' === $logout_redirect_type && isset( $_POST['ppe_logout_redirect_custom_url'] ) ) {
+				update_post_meta( $post_id, '_ppe_logout_redirect_custom_url', esc_url_raw( wp_unslash( $_POST['ppe_logout_redirect_custom_url'] ) ) );
 			}
 		}
 
