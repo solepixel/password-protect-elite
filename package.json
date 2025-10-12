@@ -1,6 +1,6 @@
 {
 	"name": "password-protect-elite",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Advanced password protection for WordPress with multiple password groups, custom blocks, and flexible redirect options.",
 	"main": "password-protect-elite.php",
 	"type": "module",

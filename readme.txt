@@ -95,6 +95,12 @@ Yes! Go to 'Password Protect Elite' > 'Global Settings' and enable global protec
 
 == Changelog ==
 
+= 1.0.1 =
+* Fixed Additional Passwords Redirect Bug
+* Added Log Out Behavior setting for Password Groups
+* Added Session Manager Class
+* Added Unit Tests
+
 = 1.0.0 =
 * Initial release
 * Multiple password groups support
