@@ -134,6 +134,12 @@ npm run dev
 
 ## Changelog
 
+### 1.0.1
+- Fixed Additional Passwords Redirect Bug
+- Added Log Out Behavior setting for Password Groups
+- Added Session Manager Class
+- Added Unit Tests
+
 ### 1.0.0
 - Initial release
 - Multiple password groups

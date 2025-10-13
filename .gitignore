@@ -107,3 +107,7 @@ temp/
 # Plugin specific
 *.zip
 *.tar.gz
+
+phpunit.xml
+
+.phpunit.result.cache
