@@ -23,7 +23,7 @@ class Frontend {
 	public function __construct() {
 		add_action( 'template_redirect', array( $this, 'check_global_protection' ) );
 		add_action( 'template_redirect', array( $this, 'check_auto_protection' ) );
-		add_action( 'wp_footer', array( $this, 'add_footer_scripts' ) );
+		add_filter( 'body_class', array( $this, 'add_ppe_body_classes' ) );
 	}
 
 	/**
@@ -430,17 +430,162 @@ class Frontend {
 	}
 
 	/**
-	 * Add footer scripts
+	 * Add PPE-related body classes
+	 *
+	 * This method adds relevant body classes based on PPE protection status and user access.
+	 * Available classes:
+	 * - ppe-protected: Page/site is protected by PPE
+	 * - ppe-user-has-access: User has access to protected content
+	 * - ppe-user-unauthenticated: User doesn't have access to protected content
+	 * - ppe-protection-{type}: Type of protection (global, auto, password-group, role-based, capability-based)
+	 * - ppe-access-required: Access is required but user doesn't have it
+	 * - ppe-user-logged-in-no-access: User is logged in but doesn't have access
+	 * - ppe-user-not-logged-in: User is not logged in and doesn't have access
+	 *
+	 * @param array $classes Existing body classes.
+	 * @return array Modified body classes.
 	 */
-	public function add_footer_scripts() {
-		// Add any additional frontend scripts here.
-		?>
-		<script>
-		// Additional frontend functionality can be added here.
-		document.addEventListener('DOMContentLoaded', function() {
-			// Handle any additional frontend interactions.
-		});
-		</script>
-		<?php
+	public function add_ppe_body_classes( $classes ) {
+		$protection_info = $this->get_protection_status();
+
+		if ( ! $protection_info['is_protected'] ) {
+			return $classes;
+		}
+
+		// Add base PPE class
+		$classes[] = 'ppe-protected';
+
+		// Add access status classes
+		if ( $protection_info['has_access'] ) {
+			$classes[] = 'ppe-user-has-access';
+		} else {
+			$classes[] = 'ppe-user-unauthenticated';
+		}
+
+		// Add protection type class
+		if ( ! empty( $protection_info['protection_type'] ) ) {
+			$classes[] = 'ppe-protection-' . $protection_info['protection_type'];
+		}
+
+		// Add specific classes for different scenarios
+		if ( ! $protection_info['has_access'] ) {
+			$classes[] = 'ppe-access-required';
+		}
+
+		// Add class for authenticated users without access
+		if ( is_user_logged_in() && ! $protection_info['has_access'] ) {
+			$classes[] = 'ppe-user-logged-in-no-access';
+		}
+
+		// Add class for unauthenticated users
+		if ( ! is_user_logged_in() && ! $protection_info['has_access'] ) {
+			$classes[] = 'ppe-user-not-logged-in';
+		}
+
+		return $classes;
+	}
+
+	/**
+	 * Get protection status for current page
+	 * Uses the same logic as existing protection methods but returns status instead of taking action
+	 *
+	 * @return array Protection status information.
+	 */
+	private function get_protection_status() {
+		$password_manager = new PasswordManager();
+
+		// Check global protection (same logic as check_global_protection but without action)
+		$global_groups = Database::get_password_groups( 'global_site' );
+		if ( ! empty( $global_groups ) && ! UrlMatcher::is_current_url_excluded( $global_groups ) ) {
+			$has_access = false;
+			foreach ( $global_groups as $group ) {
+				if ( $password_manager->has_access_to_group( $group->id ) ) {
+					$has_access = true;
+					break;
+				}
+			}
+			return array(
+				'is_protected' => true,
+				'has_access' => $has_access,
+				'protection_type' => 'global',
+			);
+		}
+
+		// Check auto-protection (same logic as check_auto_protection but without action)
+		$all_groups = Database::get_password_groups();
+		$auto_protect_group = UrlMatcher::get_auto_protect_group( $all_groups );
+		if ( $auto_protect_group ) {
+			return array(
+				'is_protected' => true,
+				'has_access' => $password_manager->has_access_to_group( $auto_protect_group->id ),
+				'protection_type' => 'auto',
+			);
+		}
+
+		// Check page-level protection (same logic as check_page_protection but without action)
+		if ( is_singular() ) {
+			global $post;
+
+			// Check role-based access
+			$access_mode = get_post_meta( $post->ID, '_ppe_access_mode', true );
+			if ( 'roles' === $access_mode ) {
+				$roles = get_post_meta( $post->ID, '_ppe_access_roles', true );
+				$roles = is_array( $roles ) ? $roles : array();
+				$has_access = false;
+				if ( is_user_logged_in() && ! empty( $roles ) ) {
+					$user = wp_get_current_user();
+					if ( $user && ! empty( $user->roles ) ) {
+						foreach ( (array) $user->roles as $role_slug ) {
+							if ( in_array( $role_slug, $roles, true ) ) {
+								$has_access = true;
+								break;
+							}
+						}
+					}
+				}
+				return array(
+					'is_protected' => ! $has_access,
+					'has_access' => $has_access,
+					'protection_type' => 'role-based',
+				);
+			}
+
+			// Check capability-based access
+			if ( 'caps' === $access_mode ) {
+				$caps = get_post_meta( $post->ID, '_ppe_access_caps', true );
+				$caps = is_array( $caps ) ? $caps : array();
+				$has_access = false;
+				if ( ! empty( $caps ) ) {
+					foreach ( $caps as $cap ) {
+						if ( current_user_can( $cap ) ) {
+							$has_access = true;
+							break;
+						}
+					}
+				}
+				return array(
+					'is_protected' => ! $has_access,
+					'has_access' => $has_access,
+					'protection_type' => 'capability-based',
+				);
+			}
+
+			// Check password group protection
+			$page_protection = Database::get_page_protection( $post->ID );
+			if ( $page_protection ) {
+				return array(
+					'is_protected' => true,
+					'has_access' => $password_manager->has_access_to_group( $page_protection->password_group_id ),
+					'protection_type' => 'password-group',
+				);
+			}
+		}
+
+		// No protection found
+		return array(
+			'is_protected' => false,
+			'has_access' => true,
+			'protection_type' => '',
+		);
 	}
 }

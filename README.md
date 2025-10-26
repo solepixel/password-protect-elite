@@ -134,6 +134,13 @@ npm run dev
 
 ## Changelog
 
+### 1.0.3
+- Attempt to fix deploy bug
+- Added body classes
+
+### 1.0.2
+- Gitignore and README Updates
+
 ### 1.0.1
 - Fixed Additional Passwords Redirect Bug
 - Added Log Out Behavior setting for Password Groups

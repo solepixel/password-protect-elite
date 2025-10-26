@@ -1,6 +1,6 @@
 {
 	"name": "password-protect-elite",
-	"version": "1.0.1",
+	"version": "1.0.3",
 	"description": "Advanced password protection for WordPress with multiple password groups, custom blocks, and flexible redirect options.",
 	"main": "password-protect-elite.php",
 	"type": "module",
@@ -37,8 +37,8 @@
 	},
 	"dependencies": {
 		"@wordpress/scripts": "^27.0.0",
-		"react": "^19.1.1",
-		"react-dom": "^19.1.1"
+		"react": "^18.0.0",
+		"react-dom": "^18.0.0"
 	},
 	"devDependencies": {
 		"@prettier/plugin-php": "^0.22.0",
