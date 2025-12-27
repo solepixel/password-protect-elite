@@ -287,6 +287,7 @@ class Blocks {
 		$allowed_roles        = $attributes['allowedRoles'] ?? [];
 		$allowed_capabilities = $attributes['allowedCapabilities'] ?? [];
 		$disable_form         = ! empty( $attributes['disableForm'] );
+		$render_dynamically   = ! empty( $attributes['renderDynamically'] );
 
 		// Get global strings for defaults.
 		$string_manager   = new \PasswordProtectElite\Admin\StringManager();
@@ -294,7 +295,13 @@ class Blocks {
 		$class_name       = $attributes['className'] ?? '';
 		$align            = $attributes['align'] ?? '';
 
-		$password_manager = new PasswordManager();
+		// Check dynamic rendering: if enabled and access mode is groups, only render if URL matches.
+		if ( $render_dynamically && 'groups' === $access_mode ) {
+			if ( ! UrlMatcher::should_render_dynamically( $allowed_groups ) ) {
+				// URL doesn't match Auto-Protect URLs or is excluded, don't render content.
+				return '';
+			}
+		}
 
 		// Access Mode: roles -> show content only for matching roles, else empty.
 		if ( 'roles' === $access_mode ) {
@@ -344,7 +351,8 @@ class Blocks {
 			'class'          => 'ppe-password-form ppe-protected-content-form',
 		];
 
-		$form_html = $password_manager->get_password_form( $form_args );
+		$password_manager = new PasswordManager();
+		$form_html        = $password_manager->get_password_form( $form_args );
 
 		// Build CSS classes including alignment.
 		$wrapper_classes = [ 'ppe-protected-content-block', 'ppe-locked' ];

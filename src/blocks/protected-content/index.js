@@ -12,7 +12,7 @@ import { PanelBody, SelectControl, TextareaControl, ToolbarGroup, ToolbarButton,
 registerBlockType('password-protect-elite/protected-content', {
 	edit: function(props) {
 		const { attributes, setAttributes } = props;
-		const { allowedGroups, fallbackMessage, accessMode, allowedRoles, allowedCapabilities, disableForm } = attributes;
+		const { allowedGroups, fallbackMessage, accessMode, allowedRoles, allowedCapabilities, disableForm, renderDynamically } = attributes;
 
 		// Get global string settings
 		const globalStrings = (typeof ppeBlocks !== 'undefined' && ppeBlocks?.globalStrings) || {};
@@ -94,6 +94,15 @@ registerBlockType('password-protect-elite/protected-content', {
 							help={__('Hide the password form and only show content after the user has authenticated by other means.', 'password-protect-elite')}
 							checked={!!disableForm}
 							onChange={(value) => setAttributes({ disableForm: !!value })}
+						/>
+					)}
+
+					{(accessMode === 'groups' || !accessMode) && (
+						<ToggleControl
+							label={__('Render Dynamically', 'password-protect-elite')}
+							help={__('Only render content when the current URL matches the Auto-Protect URLs setting of the selected password group(s), while respecting Exclude URLs.', 'password-protect-elite')}
+							checked={!!renderDynamically}
+							onChange={(value) => setAttributes({ renderDynamically: !!value })}
 						/>
 					)}
 
