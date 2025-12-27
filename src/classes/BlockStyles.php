@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -21,16 +21,16 @@ class BlockStyles {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_block_styles' ) );
-		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_editor_styles' ) );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_block_styles' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_editor_styles' ] );
 	}
 
 	/**
 	 * Enqueue block styles based on settings.
 	 */
 	public function enqueue_block_styles() {
-		$settings = get_option( 'ppe_settings', array() );
-		$mode     = isset( $settings['block_styles_mode'] ) ? $settings['block_styles_mode'] : 'all';
+		$settings = get_option( 'ppe_settings', [] );
+		$mode     = $settings['block_styles_mode'] ?? 'all';
 
 		// Load styles based on mode.
 		switch ( $mode ) {
@@ -55,14 +55,14 @@ class BlockStyles {
 		wp_enqueue_style(
 			'ppe-blocks-editor',
 			PPE_PLUGIN_URL . 'src/blocks/password-entry/editor.css',
-			array(),
+			[],
 			PPE_VERSION
 		);
 
 		wp_enqueue_style(
 			'ppe-protected-content-editor',
 			PPE_PLUGIN_URL . 'src/blocks/protected-content/editor.css',
-			array(),
+			[],
 			PPE_VERSION
 		);
 	}
@@ -75,12 +75,12 @@ class BlockStyles {
 		wp_enqueue_style(
 			'ppe-blocks-essential',
 			PPE_PLUGIN_URL . 'assets/css/blocks-essential.css',
-			array(),
+			[],
 			PPE_VERSION
 		);
 
 		// Add essential-only CSS class to body.
-		add_filter( 'body_class', array( $this, 'add_essential_styles_class' ) );
+		add_filter( 'body_class', [ $this, 'add_essential_styles_class' ] );
 	}
 
 	/**
@@ -91,7 +91,7 @@ class BlockStyles {
 		wp_enqueue_style(
 			'ppe-blocks-all',
 			PPE_PLUGIN_URL . 'assets/css/blocks-all.css',
-			array(),
+			[],
 			PPE_VERSION
 		);
 
@@ -99,7 +99,7 @@ class BlockStyles {
 		$this->add_custom_colors_css();
 
 		// Add all-styles CSS class to body.
-		add_filter( 'body_class', array( $this, 'add_all_styles_class' ) );
+		add_filter( 'body_class', [ $this, 'add_all_styles_class' ] );
 	}
 
 	/**
@@ -130,8 +130,8 @@ class BlockStyles {
 	 * @return string Current styles mode.
 	 */
 	public function get_styles_mode() {
-		$settings = get_option( 'ppe_settings', array() );
-		return isset( $settings['block_styles_mode'] ) ? $settings['block_styles_mode'] : 'all';
+		$settings = get_option( 'ppe_settings', [] );
+		return $settings['block_styles_mode'] ?? 'all';
 	}
 
 	/**
@@ -149,8 +149,8 @@ class BlockStyles {
 	 * @return array Debug information.
 	 */
 	public function get_debug_info() {
-		$settings = get_option( 'ppe_settings', array() );
-		$mode     = isset( $settings['block_styles_mode'] ) ? $settings['block_styles_mode'] : 'all';
+		$settings = get_option( 'ppe_settings', [] );
+		$mode     = $settings['block_styles_mode'] ?? 'all';
 
 		return [
 			'mode'           => $mode,
@@ -166,7 +166,7 @@ class BlockStyles {
 	 */
 	private function get_loaded_styles() {
 		global $wp_styles;
-		$loaded = array();
+		$loaded = [];
 
 		if ( isset( $wp_styles->registered ) ) {
 			foreach ( $wp_styles->registered as $handle => $style ) {

@@ -33,10 +33,10 @@ class MenuIntegration {
 		$this->session_manager = $session_manager ?? new SessionManager();
 
 		// Hook into WordPress menu system.
-		add_filter( 'wp_nav_menu_items', array( $this, 'modify_menu_items' ), 10, 2 );
-		add_filter( 'render_block_core/loginout', array( $this, 'modify_loginout_block' ), 20, 2 );
-		add_filter( 'loginout', array( $this, 'modify_loginout_link' ), 10, 2 );
-		add_action( 'init', array( $this, 'handle_logout_request' ) );
+		add_filter( 'wp_nav_menu_items', [ $this, 'modify_menu_items' ], 10, 2 );
+		add_filter( 'render_block_core/loginout', [ $this, 'modify_loginout_block' ], 20, 2 );
+		add_filter( 'loginout', [ $this, 'modify_loginout_link' ], 10, 2 );
+		add_action( 'init', [ $this, 'handle_logout_request' ] );
 	}
 
 	/**
@@ -118,8 +118,7 @@ class MenuIntegration {
 		$block_content = str_replace( $login_url, $logout_url, $block_content );
 
 		// Replace "Log in" text with "Log out" (case variations).
-		$block_content = preg_replace( '/>\s*Log in\s*</i', '>Log out<', $block_content );
-		$block_content = preg_replace( '/>\s*Login\s*</i', '>Log out<', $block_content );
+		$block_content = preg_replace( '/>\s*Log\s?in\s*</i', '>Log out<', $block_content );
 
 		return $block_content;
 	}

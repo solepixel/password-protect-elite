@@ -91,7 +91,7 @@ class PasswordManager {
 		}
 
 		// Bot honeypot: silently fail and count as attempt if filled.
-		$honeypot = isset( $_POST['ppe_hp'] ) ? sanitize_text_field( trim( (string) wp_unslash( $_POST['ppe_hp'] ) ) ) : '';
+		$honeypot            = isset( $_POST['ppe_hp'] ) ? sanitize_text_field( trim( (string) wp_unslash( $_POST['ppe_hp'] ) ) ) : '';
 		$client_fingerprints = $this->get_client_fingerprints();
 
 		// Check lockout before doing any processing (only if limit is not 0).

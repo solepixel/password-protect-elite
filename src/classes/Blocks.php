@@ -180,7 +180,7 @@ class Blocks {
 		if ( empty( $allowed_groups ) ) {
 			$content_groups = Database::get_password_groups( 'content' );
 			$general_groups = Database::get_password_groups( 'general' );
-			$all_groups     = array_merge( $content_groups, $general_groups );
+			$all_groups     = \array_merge( $content_groups, $general_groups );
 			$allowed_groups = wp_list_pluck( $all_groups, 'id' );
 		}
 
@@ -208,7 +208,10 @@ class Blocks {
 
 			$output  = '<div class="ppe-password-entry-block ppe-authenticated ' . esc_attr( $class_name ) . '">';
 			$output .= '<div class="ppe-authenticated-message">';
-			$output .= '<p>' . esc_html( $authenticated_message ) . '</p>';
+			$output .= \sprintf(
+				'<p>%s</p>',
+				esc_html( $authenticated_message )
+			);
 
 			// Add redirect link if redirect URL is available.
 			if ( ! empty( $final_redirect_url ) ) {
@@ -216,7 +219,11 @@ class Blocks {
 				if ( empty( $link_text ) ) {
 					$link_text = __( 'Continue to protected content', 'password-protect-elite' );
 				}
-				$output .= '<p><a href="' . esc_url( $final_redirect_url ) . '" class="ppe-redirect-link">' . esc_html( $link_text ) . '</a></p>';
+				$output .= \sprintf(
+					'<p><a href="%s" class="ppe-redirect-link">%s</a></p>',
+					esc_url( $final_redirect_url ),
+					esc_html( $link_text )
+				);
 			}
 
 			// Add logout link - use WordPress logout URL which will also clear password sessions.
@@ -229,7 +236,11 @@ class Blocks {
 			$redirect_after_logout = $this->get_logout_redirect_url( $authenticated_group );
 			$logout_url            = wp_logout_url( $redirect_after_logout );
 
-			$output .= '<p><a href="' . esc_url( $logout_url ) . '" class="ppe-logout-link">' . esc_html( $logout_text ) . '</a></p>';
+			$output .= \sprintf(
+				'<p><a href="%s" class="ppe-logout-link">%s</a></p>',
+				esc_url( $logout_url ),
+				esc_html( $logout_text )
+			);
 
 			$output .= '</div>';
 			$output .= '</div>';
@@ -289,10 +300,10 @@ class Blocks {
 		if ( 'roles' === $access_mode ) {
 			if ( is_user_logged_in() ) {
 				$user  = wp_get_current_user();
-				$roles = is_array( $allowed_roles ) ? $allowed_roles : [];
+				$roles = \is_array( $allowed_roles ) ? $allowed_roles : [];
 				if ( $user && ! empty( $user->roles ) && ! empty( $roles ) ) {
 					foreach ( (array) $user->roles as $role_slug ) {
-						if ( in_array( $role_slug, $roles, true ) ) {
+						if ( \in_array( $role_slug, $roles, true ) ) {
 							return $content;
 						}
 					}
@@ -379,7 +390,7 @@ class Blocks {
 					$group = Database::get_password_group( $group_id );
 					if ( $group && ! empty( $group->allowed_roles ) ) {
 						foreach ( (array) $user->roles as $role_slug ) {
-							if ( in_array( $role_slug, (array) $group->allowed_roles, true ) ) {
+							if ( \in_array( $role_slug, (array) $group->allowed_roles, true ) ) {
 								return $group_id;
 							}
 						}

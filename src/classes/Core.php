@@ -97,11 +97,21 @@ class Core {
 	public ?SessionManager $session_manager = null;
 
 	/**
+	 * Template loader
+	 *
+	 * @var ?Template
+	 */
+	public ?Template $template = null;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		// Initialize session manager first (shared dependency).
 		$this->session_manager = new SessionManager();
+
+		// Initialize template loader.
+		$this->template = new Template();
 
 		// Initialize components.
 		$this->admin            = new Admin\Admin();
