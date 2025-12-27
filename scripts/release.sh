@@ -303,6 +303,17 @@ if [ "$SKIP_CHANGELOG" != true ]; then
     if [ ! -s "$CHANGELOG_FILE" ] || [ -z "$(cat "$CHANGELOG_FILE" | tr -d '[:space:]')" ]; then
         echo "* Release version $NEW_VERSION" > "$CHANGELOG_FILE"
     fi
+
+    # Ensure all changelog lines have proper spacing after asterisk for readme.txt format
+    # Normalize: ensure "* " (asterisk + space) at start of each line
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS/BSD sed
+        sed -i.bak -E 's/^\*([^ ])/* \1/' "$CHANGELOG_FILE"
+        rm -f "$CHANGELOG_FILE.bak"
+    else
+        # Linux/GNU sed
+        sed -i 's/^\*\([^ ]\)/* \1/' "$CHANGELOG_FILE"
+    fi
 else
     # Skip changelog generation, create empty placeholder
     CHANGELOG_FILE=$(mktemp)
@@ -346,7 +357,15 @@ if [ "$SKIP_CHANGELOG" != true ]; then
     README_TXT_NEW_ENTRY=$(mktemp)
     {
         echo "= $NEW_VERSION ="
-        echo "$CHANGELOG_CONTENT" | sed 's/^\* /*/'
+        # Ensure proper formatting: asterisk followed by space for readme.txt
+        # Normalize any lines that might have "*text" to "* text"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS/BSD sed
+            echo "$CHANGELOG_CONTENT" | sed -E 's/^\*([^ ])/* \1/'
+        else
+            # Linux/GNU sed
+            echo "$CHANGELOG_CONTENT" | sed 's/^\*\([^ ]\)/* \1/'
+        fi
         echo ""
     } > "$README_TXT_NEW_ENTRY"
 
