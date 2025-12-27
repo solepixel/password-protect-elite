@@ -8,7 +8,7 @@
 namespace PasswordProtectElite\Admin;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -21,8 +21,8 @@ class Help {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'add_help_page' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_help_scripts' ) );
+		add_action( 'admin_menu', [ $this, 'add_help_page' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_help_scripts' ] );
 	}
 
 	/**
@@ -35,7 +35,7 @@ class Help {
 			__( 'Help', 'password-protect-elite' ),
 			'manage_options',
 			'ppe-help',
-			array( $this, 'render_help_page' )
+			[ $this, 'render_help_page' ]
 		);
 	}
 
@@ -52,7 +52,7 @@ class Help {
 		wp_enqueue_style(
 			'ppe-help',
 			PPE_PLUGIN_URL . 'assets/admin/css/help.css',
-			array(),
+			[],
 			PPE_VERSION
 		);
 	}

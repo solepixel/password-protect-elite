@@ -8,7 +8,7 @@
 namespace PasswordProtectElite\Admin;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -48,20 +48,18 @@ class Admin {
 		$this->pages_list = new PagesList();
 
 		// Enqueue general admin styles on all admin pages.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_styles' ] );
 	}
 
 	/**
 	 * Enqueue general admin styles.
 	 * Loads on all WordPress admin pages.
-	 *
-	 * @param string $hook Current admin page hook.
 	 */
-	public function enqueue_admin_styles( $hook ) {
+	public function enqueue_admin_styles() {
 		wp_enqueue_style(
 			'ppe-admin-general',
 			PPE_PLUGIN_URL . 'assets/admin/css/general.css',
-			array(),
+			[],
 			PPE_VERSION
 		);
 	}

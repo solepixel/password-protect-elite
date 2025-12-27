@@ -8,7 +8,7 @@
 namespace PasswordProtectElite\Admin;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -25,11 +25,11 @@ class PagesList {
 	 */
 	public function __construct() {
 		// Add Protection column after Title.
-		add_filter( 'manage_pages_columns', array( $this, 'add_protection_column' ) );
-		add_action( 'manage_pages_custom_column', array( $this, 'render_protection_column' ), 10, 2 );
+		add_filter( 'manage_pages_columns', [ $this, 'add_protection_column' ] );
+		add_action( 'manage_pages_custom_column', [ $this, 'render_protection_column' ], 10, 2 );
 
 		// Add lock icon after post title using display_post_states filter (allows HTML).
-		add_filter( 'display_post_states', array( $this, 'add_lock_icon_state' ), 10, 2 );
+		add_filter( 'display_post_states', [ $this, 'add_lock_icon_state' ], 10, 2 );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class PagesList {
 	 */
 	public function add_protection_column( $columns ) {
 		// Insert Protection column after Title.
-		$new_columns = array();
+		$new_columns = [];
 		foreach ( $columns as $key => $value ) {
 			$new_columns[ $key ] = $value;
 			if ( 'title' === $key ) {
@@ -64,16 +64,25 @@ class PagesList {
 		$protection_info = $this->get_page_protection_info( $post_id );
 
 		if ( ! $protection_info['is_protected'] ) {
-			echo '<span aria-label="' . esc_attr__( 'Not protected', 'password-protect-elite' ) . '">—</span>';
+			\printf(
+				'<span aria-label="%s">—</span>',
+				esc_attr__( 'Not protected', 'password-protect-elite' )
+			);
 			return;
 		}
 
 		// Display protection status matching the meta box "Current Protection" text.
 		$display_text = $protection_info['display_text'];
-		echo '<span class="ppe-protection-status">' . esc_html( $display_text ) . '</span>';
+		\printf(
+			'<span class="ppe-protection-status">%s</span>',
+			esc_html( $display_text )
+		);
 
 		if ( $protection_info['is_auto_protected'] ) {
-			echo '<br><em style="font-size: 11px; color: #666;">' . esc_html__( 'Auto-protected via URL rules', 'password-protect-elite' ) . '</em>';
+			\printf(
+				'<br><em style="font-size: 11px; color: #666;">%s</em>',
+				esc_html__( 'Auto-protected via URL rules', 'password-protect-elite' )
+			);
 		}
 	}
 
@@ -81,8 +90,8 @@ class PagesList {
 	 * Add lock icon state after post title in list table.
 	 * Uses display_post_states filter which allows HTML output.
 	 *
-	 * @param array   $post_states Array of post display states.
-	 * @param WP_Post $post        Current post object.
+	 * @param array    $post_states Array of post display states.
+	 * @param \WP_Post $post        Current post object.
 	 * @return array Modified post states.
 	 */
 	public function add_lock_icon_state( $post_states, $post ) {
@@ -109,17 +118,17 @@ class PagesList {
 	 * @return array Protection information.
 	 */
 	private function get_page_protection_info( $page_id ) {
-		$info = array(
+		$info = [
 			'is_protected'      => false,
 			'is_auto_protected' => false,
 			'display_text'      => '',
-		);
+		];
 
 		// Check direct protection via password group.
 		$page_protection = Database::get_page_protection( $page_id );
 		if ( $page_protection ) {
 			$info['is_protected'] = true;
-			$info['display_text']  = $page_protection->group_name;
+			$info['display_text'] = $page_protection->group_name;
 			return $info;
 		}
 
@@ -138,7 +147,11 @@ class PagesList {
 					}
 				}
 				$info['display_text'] = ! empty( $role_names )
-					? sprintf( __( 'Role-based: %s', 'password-protect-elite' ), implode( ', ', $role_names ) )
+					? sprintf(
+						'%s: %s',
+						__( 'Role-based', 'password-protect-elite' ),
+						implode( ', ', $role_names )
+					)
 					: __( 'Role-based Access', 'password-protect-elite' );
 				return $info;
 			}
@@ -149,7 +162,11 @@ class PagesList {
 			$caps = is_array( $caps ) ? $caps : array();
 			if ( ! empty( $caps ) ) {
 				$info['is_protected'] = true;
-				$info['display_text'] = sprintf( __( 'Capability-based: %s', 'password-protect-elite' ), implode( ', ', $caps ) );
+				$info['display_text'] = sprintf(
+					'%s: %s',
+					__( 'Capability-based', 'password-protect-elite' ),
+					implode( ', ', $caps )
+				);
 				return $info;
 			}
 		}
@@ -179,4 +196,3 @@ class PagesList {
 		return $info;
 	}
 }
-

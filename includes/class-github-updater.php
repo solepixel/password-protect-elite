@@ -10,7 +10,7 @@
  */
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -56,14 +56,14 @@ class PPE_GitHub_Updater {
 	 *
 	 * @var array
 	 */
-	private $plugin_data = array();
+	private $plugin_data = [];
 
 	/**
 	 * GitHub repository data
 	 *
 	 * @var array
 	 */
-	private $github_data = array();
+	private $github_data = [];
 
 	/**
 	 * Constructor.
@@ -81,9 +81,9 @@ class PPE_GitHub_Updater {
 		$this->github_repo  = sanitize_text_field( $github_repo );
 		$this->github_token = sanitize_text_field( $github_token );
 
-		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_updates' ) );
-		add_filter( 'plugins_api', array( $this, 'plugin_api_call' ), 10, 3 );
-		add_filter( 'upgrader_pre_download', array( $this, 'upgrader_pre_download' ), 10, 2 );
+		add_filter( 'pre_set_site_transient_update_plugins', [ $this, 'check_for_updates' ] );
+		add_filter( 'plugins_api', [ $this, 'plugin_api_call' ], 10, 3 );
+		add_filter( 'upgrader_pre_download', [ $this, 'upgrader_pre_download' ], 10, 2 );
 	}
 
 	/**
@@ -117,19 +117,19 @@ class PPE_GitHub_Updater {
 
 		// Check if update is needed.
 		if ( version_compare( $current_version, $latest_version, '<' ) ) {
-			$transient->response[ plugin_basename( $this->plugin_file ) ] = (object) array(
+			$transient->response[ plugin_basename( $this->plugin_file ) ] = (object) [
 				'slug'          => dirname( plugin_basename( $this->plugin_file ) ),
 				'plugin'        => plugin_basename( $this->plugin_file ),
 				'new_version'   => $latest_version,
 				'url'           => $this->plugin_data['PluginURI'],
 				'package'       => $this->get_download_url( $latest_release ),
-				'icons'         => array(),
-				'banners'       => array(),
-				'banners_rtl'   => array(),
+				'icons'         => [],
+				'banners'       => [],
+				'banners_rtl'   => [],
 				'tested'        => $this->plugin_data['TestedUpTo'],
 				'requires_php'  => $this->plugin_data['RequiresPHP'],
 				'compatibility' => new stdClass(),
-			);
+			];
 		}
 
 		return $transient;
@@ -156,10 +156,10 @@ class PPE_GitHub_Updater {
 			rawurlencode( $this->github_repo )
 		);
 
-		$headers = array(
+		$headers = [
 			'Accept'     => 'application/vnd.github.v3+json',
 			'User-Agent' => 'WordPress-Plugin-Update-Checker',
-		);
+		];
 
 		if ( ! empty( $this->github_token ) ) {
 			$headers['Authorization'] = 'token ' . $this->github_token;
@@ -167,10 +167,10 @@ class PPE_GitHub_Updater {
 
 		$response = wp_remote_get(
 			$api_url,
-			array(
+			[
 				'headers' => $headers,
 				'timeout' => 30,
-			)
+			]
 		);
 
 		if ( is_wp_error( $response ) ) {
@@ -200,7 +200,7 @@ class PPE_GitHub_Updater {
 	 */
 	private function get_download_url( $release ) {
 		// Look for the plugin zip file in assets.
-		if ( isset( $release['assets'] ) && is_array( $release['assets'] ) ) {
+		if ( isset( $release['assets'] ) && \is_array( $release['assets'] ) ) {
 			foreach ( $release['assets'] as $asset ) {
 				if ( isset( $asset['name'] ) && strpos( $asset['name'], 'password-protect-elite-' ) === 0 && strpos( $asset['name'], '.zip' ) !== false ) {
 					return $asset['browser_download_url'];
@@ -249,10 +249,10 @@ class PPE_GitHub_Updater {
 		$result->tested         = $this->plugin_data['TestedUpTo'];
 		$result->requires_php   = $this->plugin_data['RequiresPHP'];
 		$result->last_updated   = $release['published_at'];
-		$result->sections       = array(
+		$result->sections       = [
 			'description' => $this->plugin_data['Description'],
 			'changelog'   => $this->format_changelog( $release ),
-		);
+		];
 
 		$result->download_link = $this->get_download_url( $release );
 
@@ -298,7 +298,7 @@ class PPE_GitHub_Updater {
 		}
 
 		// Add authentication header for private repositories.
-		add_filter( 'http_request_args', array( $this, 'add_auth_header' ), 10, 2 );
+		add_filter( 'http_request_args', [ $this, 'add_auth_header' ], 10, 2 );
 
 		return $reply;
 	}

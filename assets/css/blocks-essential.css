@@ -8,7 +8,7 @@
  * - Form elements have basic padding but no styling
  */
 
-/* Password Entry Block - Essential Styles */
+@import url('../admin/css/vars.css');
 
 .ppe-authenticated-message {
 	display: flex;
@@ -23,60 +23,38 @@
 .ppe-password-form .ppe-form-group {
 	display: flex;
 	flex-direction: column;
-	gap: 5px;
+	gap: var(--ppe-spacing-sm);
 }
 
-.ppe-password-form .ppe-password-input {
-	/* No border, background, or color styling */
-}
-
-.ppe-password-form .ppe-submit-button {
+.ppe-password-form .ppe-submit-button,
+.ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-submit-button {
 	cursor: pointer;
-	/* No background, border, or color styling */
 }
 
 .ppe-password-form .ppe-message {
-	margin-top: 10px;
-	padding: 10px;
-	font-size: 14px;
-	/* No background, border, or color styling */
+	font-size: var(--ppe-font-base);
+	margin-top: var(--ppe-spacing-base);
+	padding: var(--ppe-spacing-base);
 }
 
-/* Protected Content Block - Essential Styles */
 .ppe-protected-content-block {
-	margin: 20px 0;
+	margin: var(--ppe-spacing-2xl) 0;
 }
 
 .ppe-protected-content-block.ppe-locked {
+	padding: var(--ppe-spacing-2xl);
 	position: relative;
-	padding: 20px;
-	/* No background, border, or box-shadow styling */
-}
-
-.ppe-protected-message {
-	/* No background, border, or color styling */
 }
 
 .ppe-protected-content-block.ppe-locked .ppe-password-form {
 	margin-top: 0;
 	padding: 0;
-	/* No background, border, or box-shadow styling */
-}
-
-.ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-password-input {
-	/* No border, background, or color styling */
-}
-
-.ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-submit-button {
-	cursor: pointer;
-	/* No background, border, or color styling */
 }
 
 .ppe-protected-content-block.ppe-locked .ppe-password-form .ppe-message {
-	margin-top: 10px;
-	padding: 10px;
-	font-size: 14px;
-	/* No background, border, or color styling */
+	font-size: var(--ppe-font-base);
+	margin-top: var(--ppe-spacing-base);
+	padding: var(--ppe-spacing-base);
 }
 
 /* Responsive adjustments */

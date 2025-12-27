@@ -51,7 +51,7 @@ class SecureData {
 	 * @return string|false Encrypted data or false on failure.
 	 */
 	public static function encrypt( $data ) {
-		if ( ! is_array( $data ) ) {
+		if ( ! \is_array( $data ) ) {
 			return false;
 		}
 
@@ -132,13 +132,13 @@ class SecureData {
 	 * @return string|false Encrypted form data or false on failure.
 	 */
 	public static function create_secure_form_data( $form_args ) {
-		$secure_data = array(
+		$secure_data = [
 			'type'           => $form_args['type'] ?? '',
-			'allowed_groups' => $form_args['allowed_groups'] ?? array(),
+			'allowed_groups' => $form_args['allowed_groups'] ?? [],
 			'redirect_url'   => $form_args['redirect_url'] ?? '',
 			'timestamp'      => time(),
 			'nonce'          => wp_create_nonce( 'ppe_secure_form_' . $form_args['type'] ),
-		);
+		];
 
 		return self::encrypt( $secure_data );
 	}
@@ -158,7 +158,7 @@ class SecureData {
 
 		// Attempt to decrypt the data.
 		$data = self::decrypt( $encrypted_data );
-		if ( false === $data || ! is_array( $data ) ) {
+		if ( false === $data || ! \is_array( $data ) ) {
 			return false;
 		}
 

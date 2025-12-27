@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -47,9 +47,9 @@ class PasswordManager {
 	public function __construct( $session_manager = null ) {
 		$this->session_manager = $session_manager ?? new SessionManager();
 
-		add_action( 'wp_ajax_ppe_validate_password', array( $this, 'ajax_validate_password' ) );
-		add_action( 'wp_ajax_nopriv_ppe_validate_password', array( $this, 'ajax_validate_password' ) );
-		add_action( 'init', array( $this, 'init_session' ) );
+		add_action( 'wp_ajax_ppe_validate_password', [ $this, 'ajax_validate_password' ] );
+		add_action( 'wp_ajax_nopriv_ppe_validate_password', [ $this, 'ajax_validate_password' ] );
+		add_action( 'init', [ $this, 'init_session' ] );
 	}
 
 	/**
@@ -58,7 +58,7 @@ class PasswordManager {
 	 * @return bool
 	 */
 	private function is_debug_mode_enabled() {
-		$settings = get_option( 'ppe_settings', array() );
+		$settings = get_option( 'ppe_settings', [] );
 		return isset( $settings['debug_mode'] ) && $settings['debug_mode'];
 	}
 
@@ -102,12 +102,12 @@ class PasswordManager {
 				$remaining_seconds = max( 0, (int) $lockout_data['expires_at'] - time() );
 				$remaining_minutes = (int) ceil( $remaining_seconds / 60 );
 				/* translators: %d is the remaining minutes until the lockout expires. */
-				wp_send_json_error( sprintf( __( 'Too many failed attempts. Try again in %d minute(s).', 'password-protect-elite' ), $remaining_minutes ) );
+				wp_send_json_error( \sprintf( __( 'Too many failed attempts. Try again in %d minute(s).', 'password-protect-elite' ), $remaining_minutes ) );
 			}
 		}
 
-		$password     = sanitize_text_field( wp_unslash( $_POST['password'] ?? '' ) );
-		$secure_data  = sanitize_text_field( wp_unslash( $_POST['ppe_secure_data'] ?? '' ) );
+		$password    = sanitize_text_field( wp_unslash( $_POST['password'] ?? '' ) );
+		$secure_data = sanitize_text_field( wp_unslash( $_POST['ppe_secure_data'] ?? '' ) );
 
 		// Debug logging.
 		$this->debug_log( 'Password received: ' . $password );
@@ -190,11 +190,11 @@ class PasswordManager {
 			$final_redirect = $this->get_redirect_url( $password_group, $redirect_url );
 
 			wp_send_json_success(
-				array(
+				[
 					'message'      => __( 'Password validated successfully', 'password-protect-elite' ),
 					'redirect_url' => $final_redirect,
 					'group_id'     => $password_group->id,
-				)
+				]
 			);
 		} else {
 			// Only record failed attempt if limit is not 0.
@@ -284,15 +284,15 @@ class PasswordManager {
 	 * @param array $args Form arguments.
 	 * @return string
 	 */
-	public function get_password_form( $args = array() ) {
-		$defaults = array(
+	public function get_password_form( $args = [] ) {
+		$defaults = [
 			'type'           => '',
-			'allowed_groups' => array(),
+			'allowed_groups' => [],
 			'redirect_url'   => '',
 			'button_text'    => __( 'Submit', 'password-protect-elite' ),
 			'placeholder'    => __( 'Enter password', 'password-protect-elite' ),
 			'class'          => 'ppe-password-form',
-		);
+		];
 
 		$args = wp_parse_args( $args, $defaults );
 
@@ -407,10 +407,10 @@ class PasswordManager {
 	private function get_client_fingerprints() {
 		$ip         = $this->get_client_ip();
 		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_USER_AGENT'] ) ) : '';
-		return array(
+		return [
 			md5( 'ip:' . $ip ),
 			md5( 'ipua:' . $ip . '|' . $user_agent ),
-		);
+		];
 	}
 
 	/**
@@ -450,17 +450,17 @@ class PasswordManager {
 			$key      = 'ppe_attempts_' . $fp;
 			$attempts = get_transient( $key );
 			if ( ! is_array( $attempts ) ) {
-				$attempts = array(
+				$attempts = [
 					'count'    => 0,
 					'first_at' => time(),
-				);
+				];
 			}
 			++$attempts['count'];
 			// Keep attempts window within a day to avoid unbounded growth.
 			set_transient( $key, $attempts, DAY_IN_SECONDS );
 
 			if ( $attempts['count'] >= $limit ) {
-				set_transient( 'ppe_lockout_' . $fp, array( 'expires_at' => $expires ), ( $minutes * 60 ) + 60 );
+				set_transient( 'ppe_lockout_' . $fp, [ 'expires_at' => $expires ], ( $minutes * 60 ) + 60 );
 				delete_transient( $key );
 				$locked = true;
 			}
@@ -499,9 +499,9 @@ class PasswordManager {
 
 		$min_remaining = $limit;
 		foreach ( $fingerprints as $fp ) {
-			$attempts = get_transient( 'ppe_attempts_' . $fp );
-			$count    = is_array( $attempts ) && isset( $attempts['count'] ) ? (int) $attempts['count'] : 0;
-			$remaining = max( 0, $limit - $count );
+			$attempts      = get_transient( 'ppe_attempts_' . $fp );
+			$count         = \is_array( $attempts ) && isset( $attempts['count'] ) ? (int) $attempts['count'] : 0;
+			$remaining     = max( 0, $limit - $count );
 			$min_remaining = min( $min_remaining, $remaining );
 		}
 		if ( $min_remaining <= 2 && $min_remaining > 0 ) {

@@ -32,10 +32,10 @@ class BlockStyles {
 		$settings = get_option( 'ppe_settings', array() );
 		$mode     = isset( $settings['block_styles_mode'] ) ? $settings['block_styles_mode'] : 'all';
 
-		// Load styles based on mode
+		// Load styles based on mode.
 		switch ( $mode ) {
 			case 'none':
-				// No styles loaded - user must define all styles in theme
+				// No styles loaded - user must define all styles in theme.
 				break;
 			case 'essential':
 				$this->enqueue_essential_styles();
@@ -51,7 +51,7 @@ class BlockStyles {
 	 * Enqueue editor styles.
 	 */
 	public function enqueue_editor_styles() {
-		// Always load editor styles for proper block editing experience
+		// Always load editor styles for proper block editing experience.
 		wp_enqueue_style(
 			'ppe-blocks-editor',
 			PPE_PLUGIN_URL . 'src/blocks/password-entry/editor.css',
@@ -71,7 +71,7 @@ class BlockStyles {
 	 * Enqueue essential styles (layout only).
 	 */
 	private function enqueue_essential_styles() {
-		// Load essential styles that provide layout without visual styling
+		// Load essential styles that provide layout without visual styling.
 		wp_enqueue_style(
 			'ppe-blocks-essential',
 			PPE_PLUGIN_URL . 'assets/css/blocks-essential.css',
@@ -79,7 +79,7 @@ class BlockStyles {
 			PPE_VERSION
 		);
 
-		// Add essential-only CSS class to body
+		// Add essential-only CSS class to body.
 		add_filter( 'body_class', array( $this, 'add_essential_styles_class' ) );
 	}
 
@@ -87,7 +87,7 @@ class BlockStyles {
 	 * Enqueue all styles.
 	 */
 	private function enqueue_all_styles() {
-		// Load full styles with all visual styling
+		// Load full styles with all visual styling.
 		wp_enqueue_style(
 			'ppe-blocks-all',
 			PPE_PLUGIN_URL . 'assets/css/blocks-all.css',
@@ -95,10 +95,10 @@ class BlockStyles {
 			PPE_VERSION
 		);
 
-		// Add custom colors as inline CSS
+		// Add custom colors as inline CSS.
 		$this->add_custom_colors_css();
 
-		// Add all-styles CSS class to body
+		// Add all-styles CSS class to body.
 		add_filter( 'body_class', array( $this, 'add_all_styles_class' ) );
 	}
 
@@ -152,11 +152,11 @@ class BlockStyles {
 		$settings = get_option( 'ppe_settings', array() );
 		$mode     = isset( $settings['block_styles_mode'] ) ? $settings['block_styles_mode'] : 'all';
 
-		return array(
+		return [
 			'mode'           => $mode,
 			'styles_enabled' => $this->are_styles_enabled(),
 			'loaded_styles'  => $this->get_loaded_styles(),
-		);
+		];
 	}
 
 	/**
@@ -185,15 +185,15 @@ class BlockStyles {
 	private function add_custom_colors_css() {
 		$settings = get_option( 'ppe_settings', array() );
 
-		// Get custom colors with defaults
-		$primary_color = $settings['primary_color'] ?? '#0073aa';
+		// Get custom colors with defaults.
+		$primary_color       = $settings['primary_color'] ?? '#0073aa';
 		$primary_color_hover = $settings['primary_color_hover'] ?? '#005177';
-		$border_color = $settings['border_color'] ?? '#e1e5e9';
-		$background_color = $settings['background_color'] ?? '#fff3cd';
-		$success_color = $settings['success_color'] ?? '#d4edda';
-		$error_color = $settings['error_color'] ?? '#f8d7da';
+		$border_color        = $settings['border_color'] ?? '#e1e5e9';
+		$background_color    = $settings['background_color'] ?? '#fff3cd';
+		$success_color       = $settings['success_color'] ?? '#d4edda';
+		$error_color         = $settings['error_color'] ?? '#f8d7da';
 
-		// Generate custom CSS
+		// Generate custom CSS.
 		$custom_css = "
 		.ppe-password-form .ppe-password-input:focus {
 			border-color: {$primary_color};
@@ -235,7 +235,7 @@ class BlockStyles {
 		}
 		";
 
-		// Add inline CSS
+		// Add inline CSS.
 		wp_add_inline_style( 'ppe-blocks-all', $custom_css );
 	}
 
@@ -248,9 +248,9 @@ class BlockStyles {
 	 */
 	private function hex_to_rgba( $hex, $alpha ) {
 		$hex = ltrim( $hex, '#' );
-		$r = hexdec( substr( $hex, 0, 2 ) );
-		$g = hexdec( substr( $hex, 2, 2 ) );
-		$b = hexdec( substr( $hex, 4, 2 ) );
+		$r   = hexdec( substr( $hex, 0, 2 ) );
+		$g   = hexdec( substr( $hex, 2, 2 ) );
+		$b   = hexdec( substr( $hex, 4, 2 ) );
 		return "rgba({$r}, {$g}, {$b}, {$alpha})";
 	}
 }

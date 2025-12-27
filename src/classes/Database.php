@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -24,25 +24,25 @@ class Database {
 	 * @return array
 	 */
 	public static function get_password_groups( $type = null ) {
-		$args = array(
+		$args = [
 			'post_type'      => 'ppe_password_group',
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
 			'orderby'        => 'title',
 			'order'          => 'ASC',
-			'meta_query'     => array(),
-		);
+			'meta_query'     => [],
+		];
 
 		if ( $type ) {
-			$args['meta_query'][] = array(
+			$args['meta_query'][] = [
 				'key'     => '_ppe_protection_type',
 				'value'   => $type,
 				'compare' => '=',
-			);
+			];
 		}
 
 		$posts  = get_posts( $args );
-		$groups = array();
+		$groups = [];
 
 		foreach ( $posts as $post ) {
 			$group = self::get_password_group( $post->ID );
@@ -67,7 +67,7 @@ class Database {
 			return null;
 		}
 
-		$group = (object) array(
+		$group = (object) [
 			'id'                   => $post->ID,
 			'name'                 => $post->post_title,
 			'description'          => $post->post_content,
@@ -78,14 +78,14 @@ class Database {
 			'redirect_page_id'     => get_post_meta( $post->ID, '_ppe_redirect_page_id', true ),
 			'redirect_custom_url'  => get_post_meta( $post->ID, '_ppe_redirect_custom_url', true ),
 			'allowed_roles'        => get_post_meta( $post->ID, '_ppe_allowed_roles', true ),
-		);
+		];
 
-		if ( empty( $group->additional_passwords ) || ! is_array( $group->additional_passwords ) ) {
-			$group->additional_passwords = array();
+		if ( empty( $group->additional_passwords ) || ! \is_array( $group->additional_passwords ) ) {
+			$group->additional_passwords = [];
 		}
 
-		if ( empty( $group->allowed_roles ) || ! is_array( $group->allowed_roles ) ) {
-			$group->allowed_roles = array();
+		if ( empty( $group->allowed_roles ) || ! \is_array( $group->allowed_roles ) ) {
+			$group->allowed_roles = [];
 		}
 
 		return $group;
@@ -98,26 +98,26 @@ class Database {
 	 * @return int|false Password group ID or false on failure.
 	 */
 	public static function create_password_group( $data ) {
-		$defaults = array(
+		$defaults = [
 			'name'                 => '',
 			'description'          => '',
 			'master_password'      => '',
-			'additional_passwords' => array(),
+			'additional_passwords' => [],
 			'protection_type'      => 'general',
 			'redirect_type'        => 'none',
 			'redirect_page_id'     => 0,
 			'redirect_custom_url'  => '',
-		);
+		];
 
 		$data = wp_parse_args( $data, $defaults );
 
 		// Create the post.
-		$post_data = array(
+		$post_data = [
 			'post_title'   => sanitize_text_field( $data['name'] ),
 			'post_content' => sanitize_textarea_field( $data['description'] ),
 			'post_type'    => 'ppe_password_group',
 			'post_status'  => 'publish',
-		);
+		];
 
 		$post_id = wp_insert_post( $post_data );
 
@@ -145,7 +145,7 @@ class Database {
 	 */
 	public static function update_password_group( $id, $data ) {
 		// Update the post.
-		$post_data = array();
+		$post_data = [];
 		if ( isset( $data['name'] ) ) {
 			$post_data['post_title'] = sanitize_text_field( $data['name'] );
 		}
@@ -213,8 +213,8 @@ class Database {
 			}
 
 			// Check additional passwords.
-			if ( ! empty( $group->additional_passwords ) && is_array( $group->additional_passwords ) ) {
-				if ( in_array( $password, $group->additional_passwords, true ) ) {
+			if ( ! empty( $group->additional_passwords ) && \is_array( $group->additional_passwords ) ) {
+				if ( \in_array( $password, $group->additional_passwords, true ) ) {
 					return $group;
 				}
 			}
@@ -248,11 +248,11 @@ class Database {
 			$redirect_url = $group->redirect_custom_url;
 		}
 
-		return (object) array(
+		return (object) [
 			'password_group_id' => $group->id,
 			'group_name'        => $group->name,
 			'redirect_url'      => $redirect_url,
-		);
+		];
 	}
 
 	/**

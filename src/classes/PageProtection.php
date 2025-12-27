@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -21,22 +21,22 @@ class PageProtection {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-		add_action( 'save_post', array( $this, 'save_post_meta' ) );
-		add_action( 'template_redirect', array( $this, 'check_page_protection' ) );
+		add_action( 'add_meta_boxes', [ $this, 'add_meta_boxes' ] );
+		add_action( 'save_post', [ $this, 'save_post_meta' ] );
+		add_action( 'template_redirect', [ $this, 'check_page_protection' ] );
 	}
 
 	/**
 	 * Add meta boxes
 	 */
 	public function add_meta_boxes() {
-		$post_types = get_post_types( array( 'public' => true ), 'names' );
+		$post_types = get_post_types( [ 'public' => true ], 'names' );
 
 		foreach ( $post_types as $post_type ) {
 			add_meta_box(
 				'ppe-page-protection',
 				__( 'Password Protect', 'password-protect-elite' ),
-				array( $this, 'render_meta_box' ),
+				[ $this, 'render_meta_box' ],
 				$post_type,
 				'side',
 				'default'
@@ -64,8 +64,8 @@ class PageProtection {
 		if ( empty( $access_mode ) ) {
 			$access_mode = 'groups';
 		}
-		if ( empty( $access_roles ) || ! is_array( $access_roles ) ) {
-			$access_roles = array();
+		if ( empty( $access_roles ) || ! \is_array( $access_roles ) ) {
+			$access_roles = [];
 		}
 		if ( empty( $access_caps ) ) {
 			$access_caps = '';
@@ -76,7 +76,7 @@ class PageProtection {
 		$auto_protect_group = null;
 		if ( ! $current_protection ) {
 			$all_groups = Database::get_password_groups();
-			$page_url  = get_permalink( $post->ID );
+			$page_url   = get_permalink( $post->ID );
 			foreach ( $all_groups as $group ) {
 				$auto_patterns = get_post_meta( $group->id, '_ppe_auto_protect_urls', true );
 				if ( empty( $auto_patterns ) ) {
@@ -116,27 +116,27 @@ class PageProtection {
 			</p>
 
 			<div class="ppe-access-groups-container" style="<?php echo ( 'groups' === $access_mode ) ? '' : 'display:none;'; ?>">
-			<select id="ppe-protection-group" name="ppe_protection_group" class="ppe-protection-select">
-				<?php
-					$empty_option_label = ( ! $current_protection && $auto_protect_group )
-						? __( 'Auto Protection', 'password-protect-elite' )
-						: __( 'No protection', 'password-protect-elite' );
-				?>
-				<option value="" <?php selected( $current_group_id, 0 ); ?>><?php echo esc_html( $empty_option_label ); ?></option>
-				<?php foreach ( $password_groups as $group ) : ?>
-					<option value="<?php echo esc_attr( $group->id ); ?>" <?php selected( $current_group_id, $group->id ); ?>>
-						<?php echo esc_html( $group->name ); ?>
-					</option>
-				<?php endforeach; ?>
-			</select>
+				<select id="ppe-protection-group" name="ppe_protection_group" class="ppe-protection-select">
+					<?php
+						$empty_option_label = ( ! $current_protection && $auto_protect_group )
+							? __( 'Auto Protection', 'password-protect-elite' )
+							: __( 'No protection', 'password-protect-elite' );
+					?>
+					<option value="" <?php selected( $current_group_id, 0 ); ?>><?php echo esc_html( $empty_option_label ); ?></option>
+					<?php foreach ( $password_groups as $group ) : ?>
+						<option value="<?php echo esc_attr( $group->id ); ?>" <?php selected( $current_group_id, $group->id ); ?>>
+							<?php echo esc_html( $group->name ); ?>
+						</option>
+					<?php endforeach; ?>
+				</select>
 			</div>
 
 			<div class="ppe-access-roles-container" style="<?php echo ( 'roles' === $access_mode ) ? '' : 'display:none;'; ?>">
 				<p><strong><?php esc_html_e( 'Allowed Roles', 'password-protect-elite' ); ?></strong></p>
 				<?php
-					$roles = function_exists( 'get_editable_roles' ) ? get_editable_roles() : array();
-					if ( ! empty( $roles ) ) :
-				?>
+				$roles = function_exists( 'get_editable_roles' ) ? get_editable_roles() : [];
+				if ( ! empty( $roles ) ) :
+					?>
 					<div class="ppe-roles-checkboxes">
 						<?php foreach ( $roles as $role_slug => $role_info ) : ?>
 							<label style="display:block;margin-bottom:4px;">
@@ -161,10 +161,12 @@ class PageProtection {
 				<p class="ppe-no-groups-notice">
 					<em>
 						<?php
-						printf(
-							/* translators: %s: Link to Password Groups admin page */
-							__( 'No password groups available. <a href="%s" target="_blank">Create some password groups</a> to protect pages.', 'password-protect-elite' ),
-							admin_url( 'edit.php?post_type=ppe_password_group' )
+						\printf(
+							'%s <a href="%s" target="_blank">%s</a> %s.',
+							esc_html__( 'No password groups available.', 'password-protect-elite' ),
+							esc_attr( admin_url( 'edit.php?post_type=ppe_password_group' ) ),
+							esc_html__( 'Create some password groups', 'password-protect-elite' ),
+							esc_html__( 'to protect pages.', 'password-protect-elite' )
 						);
 						?>
 					</em>
@@ -263,7 +265,7 @@ class PageProtection {
 	/**
 	 * Save post meta
 	 *
-	 * @param int $post_id Post ID
+	 * @param int $post_id Post ID.
 	 */
 	public function save_post_meta( $post_id ) {
 		// Check if this is an autosave.
@@ -292,20 +294,20 @@ class PageProtection {
 		update_post_meta( $post_id, '_ppe_access_mode', $access_mode );
 
 		if ( 'roles' === $access_mode ) {
-			$roles = isset( $_POST['ppe_access_roles'] ) && is_array( $_POST['ppe_access_roles'] ) ? array_map( 'sanitize_key', wp_unslash( $_POST['ppe_access_roles'] ) ) : array();
+			$roles = isset( $_POST['ppe_access_roles'] ) && is_array( $_POST['ppe_access_roles'] ) ? array_map( 'sanitize_key', wp_unslash( $_POST['ppe_access_roles'] ) ) : [];
 			update_post_meta( $post_id, '_ppe_access_roles', array_values( array_unique( array_filter( $roles ) ) ) );
 			// Remove group protection when using roles mode.
 			Database::remove_page_protection( $post_id );
 			delete_post_meta( $post_id, '_ppe_access_caps' );
 		} elseif ( 'caps' === $access_mode ) {
 			$caps_raw = isset( $_POST['ppe_access_caps'] ) ? (string) wp_unslash( $_POST['ppe_access_caps'] ) : '';
-			$caps = array_filter( array_map( 'sanitize_key', array_map( 'trim', explode( ',', $caps_raw ) ) ) );
+			$caps     = array_filter( array_map( 'sanitize_key', array_map( 'trim', explode( ',', $caps_raw ) ) ) );
 			update_post_meta( $post_id, '_ppe_access_caps', array_values( array_unique( $caps ) ) );
 			// Remove group protection when using caps mode.
 			Database::remove_page_protection( $post_id );
 			delete_post_meta( $post_id, '_ppe_access_roles' );
 		} else {
-			// groups mode
+			// Groups mode.
 			delete_post_meta( $post_id, '_ppe_access_roles' );
 			delete_post_meta( $post_id, '_ppe_access_caps' );
 			// Save selected password group.
@@ -332,8 +334,8 @@ class PageProtection {
 		// First evaluate page-level access mode for roles/caps.
 		$access_mode = get_post_meta( $post->ID, '_ppe_access_mode', true );
 		if ( 'roles' === $access_mode ) {
-			$roles = get_post_meta( $post->ID, '_ppe_access_roles', true );
-			$roles = is_array( $roles ) ? $roles : array();
+			$roles   = get_post_meta( $post->ID, '_ppe_access_roles', true );
+			$roles   = \is_array( $roles ) ? $roles : [];
 			$allowed = false;
 			if ( is_user_logged_in() && ! empty( $roles ) ) {
 				$user = wp_get_current_user();
@@ -355,8 +357,8 @@ class PageProtection {
 			exit;
 		}
 		if ( 'caps' === $access_mode ) {
-			$caps = get_post_meta( $post->ID, '_ppe_access_caps', true );
-			$caps = is_array( $caps ) ? $caps : array();
+			$caps    = get_post_meta( $post->ID, '_ppe_access_caps', true );
+			$caps    = \is_array( $caps ) ? $caps : [];
 			$allowed = false;
 			if ( ! empty( $caps ) ) {
 				foreach ( $caps as $cap ) {
@@ -401,7 +403,7 @@ class PageProtection {
 	/**
 	 * Show password form for page protection
 	 *
-	 * @param object $page_protection Page protection data
+	 * @param object $page_protection Page protection data.
 	 */
 	private function show_password_form( $page_protection ) {
 		// Get the password group.
@@ -414,28 +416,35 @@ class PageProtection {
 		// Set page title.
 		add_filter(
 			'wp_title',
-			function ( $title ) use ( $password_group ) {
-				return sprintf( __( 'Password Required - %s', 'password-protect-elite' ), $password_group->name );
+			function () use ( $password_group ) {
+				return \sprintf(
+					'%s - %s',
+					esc_html__( 'Password Required', 'password-protect-elite' ),
+					esc_html( $password_group->name )
+				);
 			}
 		);
 
 		// Enqueue necessary scripts.
 		wp_enqueue_script( 'ppe-frontend' );
-		// Note: Block styles are now handled by the BlockStyles class
 
 		// Get redirect URL.
 		$redirect_url = ! empty( $password_group->redirect_url ) ? $password_group->redirect_url : get_permalink();
 
 		// Create password form.
 		$password_manager = new PasswordManager();
-		$form_args        = array(
+		$form_args        = [
 			'type'           => 'section',
-			'allowed_groups' => array( $password_group->id ),
+			'allowed_groups' => [ $password_group->id ],
 			'redirect_url'   => $redirect_url,
 			'button_text'    => __( 'Access Page', 'password-protect-elite' ),
-			'placeholder'    => sprintf( __( 'Enter password for %s', 'password-protect-elite' ), $password_group->name ),
+			'placeholder'    => \sprintf(
+				'%s %s',
+				__( 'Enter password for', 'password-protect-elite' ),
+				$password_group->name
+			),
 			'class'          => 'ppe-page-protection-form',
-		);
+		];
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
@@ -446,7 +455,13 @@ class PageProtection {
 		<head>
 			<meta charset="<?php bloginfo( 'charset' ); ?>">
 			<meta name="viewport" content="width=device-width, initial-scale=1">
-			<title><?php echo esc_html( sprintf( __( 'Password Required - %s', 'password-protect-elite' ), $password_group->name ) ); ?></title>
+			<?php
+			printf(
+				'<title>%s - %s</title>',
+				esc_html__( 'Password Required', 'password-protect-elite' ),
+				esc_html( $password_group->name )
+			);
+			?>
 			<?php wp_head(); ?>
 		</head>
 		<body <?php body_class( 'ppe-password-page' ); ?>>
@@ -454,7 +469,13 @@ class PageProtection {
 				<div class="ppe-password-page-content">
 					<div class="ppe-password-page-header">
 						<h1><?php echo esc_html( sprintf( __( 'Password Required', 'password-protect-elite' ) ) ); ?></h1>
-						<p><?php echo esc_html( sprintf( __( 'This page is protected. Please enter the password for "%s" to continue.', 'password-protect-elite' ), $password_group->name ) ); ?></p>
+						<?php
+						printf(
+							'<p><%s "%s" %s.</p>',
+							esc_html__( 'This page is protected. Please enter the password for', 'password-protect-elite' ),
+							esc_html( $password_group->name )
+						);
+						?>
 					</div>
 
 					<div class="ppe-password-page-form">

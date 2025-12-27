@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -21,13 +21,13 @@ class Frontend {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'template_redirect', array( $this, 'check_global_protection' ) );
-		add_action( 'template_redirect', array( $this, 'check_auto_protection' ) );
-		add_filter( 'body_class', array( $this, 'add_ppe_body_classes' ) );
+		add_action( 'template_redirect', [ $this, 'check_global_protection' ] );
+		add_action( 'template_redirect', [ $this, 'check_auto_protection' ] );
+		add_filter( 'body_class', [ $this, 'add_ppe_body_classes' ] );
 	}
 
 	/**
-	 * Check global protection
+	 * Check global protection.
 	 */
 	public function check_global_protection() {
 		// Get global site password groups.
@@ -111,7 +111,6 @@ class Frontend {
 				$this->show_auto_protection_form( $auto_protect_group );
 			}
 		);
-		return;
 	}
 
 	/**
@@ -137,21 +136,20 @@ class Frontend {
 
 		// Enqueue necessary scripts.
 		wp_enqueue_script( 'ppe-frontend' );
-		// Note: Block styles are now handled by the BlockStyles class
 
 		// Get redirect URL from group settings.
 		$redirect_url = $this->get_redirect_url( $group );
 
 		// Create password form.
 		$password_manager = new PasswordManager();
-		$form_args        = array(
+		$form_args        = [
 			'type'           => 'global_site',
 			'allowed_groups' => array( $group->id ),
 			'redirect_url'   => $redirect_url,
 			'button_text'    => __( 'Access Site', 'password-protect-elite' ),
 			'placeholder'    => __( 'Enter site password', 'password-protect-elite' ),
 			'class'          => 'ppe-global-protection-form',
-		);
+		];
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
@@ -296,27 +294,34 @@ class Frontend {
 		add_filter(
 			'wp_title',
 			function () use ( $group ) {
-				return sprintf( __( 'Password Required - %s', 'password-protect-elite' ), $group->name );
+				return \sprintf(
+					'%s - %s',
+					esc_html__( 'Password Required', 'password-protect-elite' ),
+					esc_html( $group->name )
+				);
 			}
 		);
 
 		// Enqueue necessary scripts.
 		wp_enqueue_script( 'ppe-frontend' );
-		// Note: Block styles are now handled by the BlockStyles class
 
 		// Get redirect URL from group settings.
 		$redirect_url = $this->get_redirect_url( $group );
 
 		// Create password form.
 		$password_manager = new PasswordManager();
-		$form_args        = array(
+		$form_args        = [
 			'type'           => 'section',
 			'allowed_groups' => array( $group->id ),
 			'redirect_url'   => $redirect_url,
 			'button_text'    => __( 'Access Page', 'password-protect-elite' ),
-			'placeholder'    => sprintf( __( 'Enter password for %s', 'password-protect-elite' ), $group->name ),
+			'placeholder'    => sprintf(
+				'%s %s',
+				esc_html__( 'Enter password for', 'password-protect-elite' ),
+				esc_html( $group->name )
+			),
 			'class'          => 'ppe-auto-protection-form',
-		);
+		];
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
@@ -327,7 +332,13 @@ class Frontend {
 		<head>
 			<meta charset="<?php bloginfo( 'charset' ); ?>">
 			<meta name="viewport" content="width=device-width, initial-scale=1">
-			<title><?php echo esc_html( sprintf( __( 'Password Required - %s', 'password-protect-elite' ), $group->name ) ); ?></title>
+			<?php
+			\printf(
+				'<title>%s - %s</title>',
+				esc_html__( 'Password Required', 'password-protect-elite' ),
+				esc_html( $group->name )
+			);
+			?>
 			<?php wp_head(); ?>
 		</head>
 		<body <?php body_class( 'ppe-password-page' ); ?>>
@@ -335,7 +346,14 @@ class Frontend {
 				<div class="ppe-password-page-content">
 					<div class="ppe-password-page-header">
 						<h1><?php echo esc_html( __( 'Password Required', 'password-protect-elite' ) ); ?></h1>
-						<p><?php echo esc_html( sprintf( __( 'This page is protected. Please enter the password for "%s" to continue.', 'password-protect-elite' ), $group->name ) ); ?></p>
+						<?php
+						\printf(
+							'<p>%s "%s" %s.</p>',
+							esc_html__( 'This page is protected. Please enter the password for', 'password-protect-elite' ),
+							esc_html( $group->name ),
+							esc_html__( 'to continue.', 'password-protect-elite' )
+						);
+						?>
 					</div>
 
 					<div class="ppe-password-page-form">
@@ -452,32 +470,32 @@ class Frontend {
 			return $classes;
 		}
 
-		// Add base PPE class
+		// Add base PPE class.
 		$classes[] = 'ppe-protected';
 
-		// Add access status classes
+		// Add access status classes.
 		if ( $protection_info['has_access'] ) {
 			$classes[] = 'ppe-user-has-access';
 		} else {
 			$classes[] = 'ppe-user-unauthenticated';
 		}
 
-		// Add protection type class
+		// Add protection type class.
 		if ( ! empty( $protection_info['protection_type'] ) ) {
 			$classes[] = 'ppe-protection-' . $protection_info['protection_type'];
 		}
 
-		// Add specific classes for different scenarios
+		// Add specific classes for different scenarios.
 		if ( ! $protection_info['has_access'] ) {
 			$classes[] = 'ppe-access-required';
 		}
 
-		// Add class for authenticated users without access
+		// Add class for authenticated users without access.
 		if ( is_user_logged_in() && ! $protection_info['has_access'] ) {
 			$classes[] = 'ppe-user-logged-in-no-access';
 		}
 
-		// Add class for unauthenticated users
+		// Add class for unauthenticated users.
 		if ( ! is_user_logged_in() && ! $protection_info['has_access'] ) {
 			$classes[] = 'ppe-user-not-logged-in';
 		}
@@ -487,14 +505,14 @@ class Frontend {
 
 	/**
 	 * Get protection status for current page
-	 * Uses the same logic as existing protection methods but returns status instead of taking action
+	 * Uses the same logic as existing protection methods but returns status instead of taking action.
 	 *
 	 * @return array Protection status information.
 	 */
 	private function get_protection_status() {
 		$password_manager = new PasswordManager();
 
-		// Check global protection (same logic as check_global_protection but without action)
+		// Check global protection (same logic as check_global_protection but without action).
 		$global_groups = Database::get_password_groups( 'global_site' );
 		if ( ! empty( $global_groups ) && ! UrlMatcher::is_current_url_excluded( $global_groups ) ) {
 			$has_access = false;
@@ -504,56 +522,56 @@ class Frontend {
 					break;
 				}
 			}
-			return array(
-				'is_protected' => true,
-				'has_access' => $has_access,
+			return [
+				'is_protected'    => true,
+				'has_access'      => $has_access,
 				'protection_type' => 'global',
-			);
+			];
 		}
 
-		// Check auto-protection (same logic as check_auto_protection but without action)
-		$all_groups = Database::get_password_groups();
+		// Check auto-protection (same logic as check_auto_protection but without action).
+		$all_groups         = Database::get_password_groups();
 		$auto_protect_group = UrlMatcher::get_auto_protect_group( $all_groups );
 		if ( $auto_protect_group ) {
-			return array(
-				'is_protected' => true,
-				'has_access' => $password_manager->has_access_to_group( $auto_protect_group->id ),
+			return [
+				'is_protected'    => true,
+				'has_access'      => $password_manager->has_access_to_group( $auto_protect_group->id ),
 				'protection_type' => 'auto',
-			);
+			];
 		}
 
-		// Check page-level protection (same logic as check_page_protection but without action)
+		// Check page-level protection (same logic as check_page_protection but without action).
 		if ( is_singular() ) {
 			global $post;
 
-			// Check role-based access
+			// Check role-based access.
 			$access_mode = get_post_meta( $post->ID, '_ppe_access_mode', true );
 			if ( 'roles' === $access_mode ) {
-				$roles = get_post_meta( $post->ID, '_ppe_access_roles', true );
-				$roles = is_array( $roles ) ? $roles : array();
+				$roles      = get_post_meta( $post->ID, '_ppe_access_roles', true );
+				$roles      = \is_array( $roles ) ? $roles : [];
 				$has_access = false;
 				if ( is_user_logged_in() && ! empty( $roles ) ) {
 					$user = wp_get_current_user();
 					if ( $user && ! empty( $user->roles ) ) {
 						foreach ( (array) $user->roles as $role_slug ) {
-							if ( in_array( $role_slug, $roles, true ) ) {
+							if ( \in_array( $role_slug, $roles, true ) ) {
 								$has_access = true;
 								break;
 							}
 						}
 					}
 				}
-				return array(
-					'is_protected' => ! $has_access,
-					'has_access' => $has_access,
+				return [
+					'is_protected'    => ! $has_access,
+					'has_access'      => $has_access,
 					'protection_type' => 'role-based',
-				);
+				];
 			}
 
-			// Check capability-based access
+			// Check capability-based access.
 			if ( 'caps' === $access_mode ) {
-				$caps = get_post_meta( $post->ID, '_ppe_access_caps', true );
-				$caps = is_array( $caps ) ? $caps : array();
+				$caps       = get_post_meta( $post->ID, '_ppe_access_caps', true );
+				$caps       = \is_array( $caps ) ? $caps : [];
 				$has_access = false;
 				if ( ! empty( $caps ) ) {
 					foreach ( $caps as $cap ) {
@@ -563,29 +581,29 @@ class Frontend {
 						}
 					}
 				}
-				return array(
-					'is_protected' => ! $has_access,
-					'has_access' => $has_access,
+				return [
+					'is_protected'    => ! $has_access,
+					'has_access'      => $has_access,
 					'protection_type' => 'capability-based',
-				);
+				];
 			}
 
-			// Check password group protection
+			// Check password group protection.
 			$page_protection = Database::get_page_protection( $post->ID );
 			if ( $page_protection ) {
-				return array(
-					'is_protected' => true,
-					'has_access' => $password_manager->has_access_to_group( $page_protection->password_group_id ),
+				return [
+					'is_protected'    => true,
+					'has_access'      => $password_manager->has_access_to_group( $page_protection->password_group_id ),
 					'protection_type' => 'password-group',
-				);
+				];
 			}
 		}
 
-		// No protection found
-		return array(
-			'is_protected' => false,
-			'has_access' => true,
+		// No protection found.
+		return [
+			'is_protected'    => false,
+			'has_access'      => true,
 			'protection_type' => '',
-		);
+		];
 	}
 }

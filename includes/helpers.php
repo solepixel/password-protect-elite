@@ -62,7 +62,7 @@ if ( ! function_exists( 'ppelite_get_password_form' ) ) {
 	 * @param array $args Form arguments.
 	 * @return string
 	 */
-	function ppelite_get_password_form( $args = array() ) {
+	function ppelite_get_password_form( $args = [] ) {
 		return ppelite()->password_manager->get_password_form( $args );
 	}
 }

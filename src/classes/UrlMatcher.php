@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -99,7 +99,7 @@ class UrlMatcher {
 	 * @return string Current request URL.
 	 */
 	public static function get_current_url() {
-		$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' );
+		$request_uri = \wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' );
 		return $request_uri;
 	}
 
