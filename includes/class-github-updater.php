@@ -121,13 +121,13 @@ class PPE_GitHub_Updater {
 				'slug'          => dirname( plugin_basename( $this->plugin_file ) ),
 				'plugin'        => plugin_basename( $this->plugin_file ),
 				'new_version'   => $latest_version,
-				'url'           => $this->plugin_data['PluginURI'],
+				'url'           => $this->plugin_data['PluginURI'] ?? '',
 				'package'       => $this->get_download_url( $latest_release ),
 				'icons'         => [],
 				'banners'       => [],
 				'banners_rtl'   => [],
-				'tested'        => $this->plugin_data['TestedUpTo'],
-				'requires_php'  => $this->plugin_data['RequiresPHP'],
+				'tested'        => $this->plugin_data['TestedUpTo'] ?? '',
+				'requires_php'  => $this->plugin_data['RequiresPHP'] ?? '',
 				'compatibility' => new stdClass(),
 			];
 		}
@@ -239,18 +239,18 @@ class PPE_GitHub_Updater {
 		$latest_version = ltrim( $release['tag_name'], 'v' );
 
 		$result                 = new stdClass();
-		$result->name           = $this->plugin_data['Name'];
+		$result->name           = $this->plugin_data['Name'] ?? '';
 		$result->slug           = $args->slug;
 		$result->version        = $latest_version;
-		$result->author         = $this->plugin_data['Author'];
-		$result->author_profile = $this->plugin_data['AuthorURI'];
-		$result->homepage       = $this->plugin_data['PluginURI'];
-		$result->requires       = $this->plugin_data['RequiresAtLeast'];
-		$result->tested         = $this->plugin_data['TestedUpTo'];
-		$result->requires_php   = $this->plugin_data['RequiresPHP'];
-		$result->last_updated   = $release['published_at'];
+		$result->author         = $this->plugin_data['Author'] ?? '';
+		$result->author_profile = $this->plugin_data['AuthorURI'] ?? '';
+		$result->homepage       = $this->plugin_data['PluginURI'] ?? '';
+		$result->requires       = $this->plugin_data['RequiresAtLeast'] ?? '';
+		$result->tested         = $this->plugin_data['TestedUpTo'] ?? '';
+		$result->requires_php   = $this->plugin_data['RequiresPHP'] ?? '';
+		$result->last_updated   = $release['published_at'] ?? '';
 		$result->sections       = [
-			'description' => $this->plugin_data['Description'],
+			'description' => $this->plugin_data['Description'] ?? '',
 			'changelog'   => $this->format_changelog( $release ),
 		];
 
