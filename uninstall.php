@@ -22,12 +22,12 @@ delete_option( 'ppe_global_redirect' );
 
 // Remove password group posts (Custom Post Type).
 $password_groups = get_posts(
-	array(
+	[
 		'post_type'      => 'ppe_password_group',
 		'post_status'    => 'any',
 		'posts_per_page' => -1,
 		'fields'         => 'ids',
-	)
+	]
 );
 
 foreach ( $password_groups as $group_id ) {

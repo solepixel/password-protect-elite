@@ -3,7 +3,7 @@
  * Plugin Name: Password Protect Elite
  * Plugin URI: https://b7s.co/
  * Description: Advanced password protection for WordPress with multiple password groups, custom blocks, and flexible redirect options.
- * Version: 1.0.3
+ * Version: 1.1.0
  * Author: Briantics, Inc.
  * Author URI: https://b7s.co/
  * License: GPL v2 or later
@@ -11,7 +11,7 @@
  * Text Domain: password-protect-elite
  * Domain Path: /languages
  * Requires at least: 5.0
- * Tested up to: 6.8
+ * Tested up to: 6.9
  * Requires PHP: 8.2
  * Network: false
  * GitHub Plugin URI: https://github.com/solepixel/password-protect-elite
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-const PPE_VERSION = '1.0.3';
+const PPE_VERSION = '1.1.0';
 
 // Plugin file.
 define( 'PPE_PLUGIN_FILE', __FILE__ );

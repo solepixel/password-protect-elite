@@ -1,10 +1,10 @@
 === Password Protect Elite ===
-Contributors: yourname
+Contributors: briandichiara
 Tags: password, protection, security, gutenberg, blocks
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 1.0.3
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,6 +94,14 @@ Yes! Go to 'Password Protect Elite' > 'Global Settings' and enable global protec
 5. Global settings page
 
 == Changelog ==
+
+= 1.1.0 =
+* Attempt to fix issues with password form login.
+* Added ability to disable failed attempt lockouts.
+* Added Protection admin column on Pages list view.
+* Added template view loader with filter for override.
+* Added dynamic render feature to Protected Content block.
+* Small code refactoring, cleanup, and optimizations.
 
 = 1.0.3 =
 * Attempt to fix deploy bug

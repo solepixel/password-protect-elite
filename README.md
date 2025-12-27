@@ -130,9 +130,17 @@ npm run dev
 
 - **Documentation**: Check the Help page in WordPress admin
 - **Issues**: Report bugs on GitHub
-- **Contact**: info@b7s.co
+- **Contact**: brian@briantics.com
 
 ## Changelog
+
+### 1.1.0
+- Attempt to fix issues with password form login.
+- Added ability to disable failed attempt lockouts.
+- Added Protection admin column on Pages list view.
+- Added template view loader with filter for override.
+- Added dynamic render feature to Protected Content block.
+- Small code refactoring, cleanup, and optimizations.
 
 ### 1.0.3
 - Attempt to fix deploy bug
