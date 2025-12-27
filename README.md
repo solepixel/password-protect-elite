@@ -134,6 +134,10 @@ npm run dev
 
 ## Changelog
 
+### 1.1.3
+- Fix error in Github Updater script
+- Fix to release script for plugin header version
+
 ### 1.1.2
 - Attempt to fix release script.
 
