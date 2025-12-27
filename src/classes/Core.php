@@ -27,20 +27,6 @@ class Core {
 	public ?Admin\Admin $admin = null;
 
 	/**
-	 * Admin Help functionality
-	 *
-	 * @var ?Admin\Help
-	 */
-	public ?Admin\Help $admin_help = null;
-
-	/**
-	 * Admin Settings functionality
-	 *
-	 * @var ?Admin\Settings
-	 */
-	public ?Admin\Settings $admin_settings = null;
-
-	/**
 	 * Password Manager
 	 *
 	 * @var ?PasswordManager
@@ -111,16 +97,24 @@ class Core {
 	public ?SessionManager $session_manager = null;
 
 	/**
+	 * Template loader
+	 *
+	 * @var ?Template
+	 */
+	public ?Template $template = null;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		// Initialize session manager first (shared dependency).
 		$this->session_manager = new SessionManager();
 
+		// Initialize template loader.
+		$this->template = new Template();
+
 		// Initialize components.
 		$this->admin            = new Admin\Admin();
-		$this->admin_settings   = new Admin\Settings();
-		$this->admin_help       = new Admin\Help();
 		$this->password_manager = new PasswordManager( $this->session_manager );
 		$this->database         = new Database();
 		$this->password_groups  = new PasswordGroups();

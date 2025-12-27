@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -21,9 +21,9 @@ class Blocks {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'init', array( $this, 'register_blocks' ) );
-		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_assets' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_assets' ) );
+		add_action( 'init', [ $this, 'register_blocks' ] );
+		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_block_editor_assets' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_assets' ] );
 	}
 
 	/**
@@ -36,17 +36,17 @@ class Blocks {
 		// Register password entry block.
 		register_block_type(
 			PPE_PLUGIN_PATH . 'src/blocks/password-entry/block.json',
-			array(
-				'render_callback' => array( $this, 'render_password_entry_block' ),
-			)
+			[
+				'render_callback' => [ $this, 'render_password_entry_block' ],
+			]
 		);
 
 		// Register password protected content block.
 		register_block_type(
 			PPE_PLUGIN_PATH . 'src/blocks/protected-content/block.json',
-			array(
-				'render_callback' => array( $this, 'render_protected_content_block' ),
-			)
+			[
+				'render_callback' => [ $this, 'render_protected_content_block' ],
+			]
 		);
 	}
 
@@ -58,24 +58,24 @@ class Blocks {
 		wp_register_script(
 			'ppe-password-entry-block',
 			PPE_PLUGIN_URL . 'build/password-entry.js',
-			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n', 'react', 'react-dom' ),
+			[ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n', 'react', 'react-dom' ],
 			PPE_VERSION,
-			array(
+			[
 				'in_footer' => true,
 				'strategy'  => 'defer',
-			)
+			]
 		);
 
 		// Register protected content block script.
 		wp_register_script(
 			'ppe-protected-content-block',
 			PPE_PLUGIN_URL . 'build/protected-content.js',
-			array( 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n', 'react', 'react-dom' ),
+			[ 'wp-blocks', 'wp-element', 'wp-block-editor', 'wp-i18n', 'react', 'react-dom' ],
 			PPE_VERSION,
-			array(
+			[
 				'in_footer' => true,
 				'strategy'  => 'defer',
-			)
+			]
 		);
 	}
 
@@ -91,26 +91,25 @@ class Blocks {
 
 		// Get password groups for localization.
 		$password_groups = Database::get_password_groups();
-		$groups_data     = array();
+		$groups_data     = [];
 
 		foreach ( $password_groups as $group ) {
-			$groups_data[] = array(
+			$groups_data[] = [
 				'id'   => $group->id,
 				'name' => $group->name,
 				'type' => $group->protection_type,
-			);
+			];
 		}
-
 
 		// Get global strings for localization.
 		$string_manager = new \PasswordProtectElite\Admin\StringManager();
 		$global_strings = $string_manager->get_all_strings();
 
 		// Localize scripts with password groups for the block editor.
-		$localization_data = array(
+		$localization_data = [
 			'passwordGroups' => $groups_data,
-			'globalStrings' => $global_strings,
-			'strings'        => array(
+			'globalStrings'  => $global_strings,
+			'strings'        => [
 				'passwordEntry'        => __( 'Password Entry', 'password-protect-elite' ),
 				'protectedContent'     => __( 'Protected Content', 'password-protect-elite' ),
 				'selectPasswordGroups' => __( 'Select Password Groups', 'password-protect-elite' ),
@@ -119,8 +118,8 @@ class Blocks {
 				'redirectUrl'          => __( 'Redirect URL', 'password-protect-elite' ),
 				'fallbackMessage'      => __( 'Fallback Message', 'password-protect-elite' ),
 				'noPasswordGroups'     => __( 'No password groups available. Create some in the plugin settings.', 'password-protect-elite' ),
-			),
-		);
+			],
+		];
 
 		wp_localize_script( 'ppe-password-entry-block', 'ppeBlocks', $localization_data );
 		wp_localize_script( 'ppe-protected-content-block', 'ppeBlocks', $localization_data );
@@ -133,32 +132,29 @@ class Blocks {
 		wp_enqueue_script(
 			'ppe-frontend',
 			PPE_PLUGIN_URL . 'assets/js/frontend.js',
-			array( 'jquery' ),
+			[ 'jquery' ],
 			PPE_VERSION,
 			true
 		);
 
-		// Note: Block styles are now handled by the BlockStyles class
-		// based on the user's settings preference
-
-		// Get debug mode setting
-		$settings = get_option( 'ppe_settings', array() );
+		// Get debug mode setting.
+		$settings   = get_option( 'ppe_settings', [] );
 		$debug_mode = isset( $settings['debug_mode'] ) && $settings['debug_mode'];
 
 		wp_localize_script(
 			'ppe-frontend',
 			'ppeFrontend',
-			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'ppe_validate_password' ),
+			[
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+				'nonce'     => wp_create_nonce( 'ppe_validate_password' ),
 				'debugMode' => $debug_mode,
-				'strings' => array(
+				'strings'   => [
 					'passwordRequired' => __( 'Password is required', 'password-protect-elite' ),
 					'invalidPassword'  => __( 'Invalid password', 'password-protect-elite' ),
 					'validating'       => __( 'Validating...', 'password-protect-elite' ),
 					'error'            => __( 'An error occurred. Please try again.', 'password-protect-elite' ),
-				),
-			)
+				],
+			]
 		);
 	}
 
@@ -171,7 +167,7 @@ class Blocks {
 	 */
 	public function render_password_entry_block( $attributes, $content ) {
 		unset( $content );
-		$allowed_groups = $attributes['allowedGroups'] ?? array();
+		$allowed_groups = $attributes['allowedGroups'] ?? [];
 
 		// Get global strings for defaults.
 		$string_manager = new \PasswordProtectElite\Admin\StringManager();
@@ -184,7 +180,7 @@ class Blocks {
 		if ( empty( $allowed_groups ) ) {
 			$content_groups = Database::get_password_groups( 'content' );
 			$general_groups = Database::get_password_groups( 'general' );
-			$all_groups     = array_merge( $content_groups, $general_groups );
+			$all_groups     = \array_merge( $content_groups, $general_groups );
 			$allowed_groups = wp_list_pluck( $all_groups, 'id' );
 		}
 
@@ -192,7 +188,7 @@ class Blocks {
 
 		// Determine if user has access via password validation or role-based bypass.
 		$authenticated_group = self::get_authenticated_group_id( $allowed_groups );
-		$is_authenticated   = ( $authenticated_group > 0 );
+		$is_authenticated    = $authenticated_group > 0;
 
 		// If user is already authenticated, show message instead of form.
 		if ( $is_authenticated ) {
@@ -210,9 +206,12 @@ class Blocks {
 				}
 			}
 
-			$output = '<div class="ppe-password-entry-block ppe-authenticated ' . esc_attr( $class_name ) . '">';
+			$output  = '<div class="ppe-password-entry-block ppe-authenticated ' . esc_attr( $class_name ) . '">';
 			$output .= '<div class="ppe-authenticated-message">';
-			$output .= '<p>' . esc_html( $authenticated_message ) . '</p>';
+			$output .= \sprintf(
+				'<p>%s</p>',
+				esc_html( $authenticated_message )
+			);
 
 			// Add redirect link if redirect URL is available.
 			if ( ! empty( $final_redirect_url ) ) {
@@ -220,7 +219,11 @@ class Blocks {
 				if ( empty( $link_text ) ) {
 					$link_text = __( 'Continue to protected content', 'password-protect-elite' );
 				}
-				$output .= '<p><a href="' . esc_url( $final_redirect_url ) . '" class="ppe-redirect-link">' . esc_html( $link_text ) . '</a></p>';
+				$output .= \sprintf(
+					'<p><a href="%s" class="ppe-redirect-link">%s</a></p>',
+					esc_url( $final_redirect_url ),
+					esc_html( $link_text )
+				);
 			}
 
 			// Add logout link - use WordPress logout URL which will also clear password sessions.
@@ -233,7 +236,11 @@ class Blocks {
 			$redirect_after_logout = $this->get_logout_redirect_url( $authenticated_group );
 			$logout_url            = wp_logout_url( $redirect_after_logout );
 
-			$output .= '<p><a href="' . esc_url( $logout_url ) . '" class="ppe-logout-link">' . esc_html( $logout_text ) . '</a></p>';
+			$output .= \sprintf(
+				'<p><a href="%s" class="ppe-logout-link">%s</a></p>',
+				esc_url( $logout_url ),
+				esc_html( $logout_text )
+			);
 
 			$output .= '</div>';
 			$output .= '</div>';
@@ -242,14 +249,14 @@ class Blocks {
 		}
 
 		// User is not authenticated, show the password form.
-		$form_args = array(
+		$form_args = [
 			'type'           => 'content',
 			'allowed_groups' => $allowed_groups,
 			'redirect_url'   => $redirect_url,
 			'button_text'    => $button_text,
 			'placeholder'    => $placeholder,
 			'class'          => 'ppe-password-form ' . $class_name,
-		);
+		];
 
 		$form_html = $password_manager->get_password_form( $form_args );
 
@@ -259,8 +266,8 @@ class Blocks {
 			$redirect_group = isset( $_GET['ppe_group'] ) ? absint( $_GET['ppe_group'] ) : 0;
 			if ( $redirect_group && ( empty( $allowed_groups ) || in_array( $redirect_group, $allowed_groups, true ) ) ) {
 				$auth_required_message = $string_manager->get_string( 'auth_required_message' );
-				$replacement = '<div class="ppe-error-message" style="display: block;">' . esc_html( $auth_required_message ) . '</div>';
-				$form_html  = str_replace( '<div class="ppe-error-message" style="display: none;"></div>', $replacement, $form_html );
+				$replacement           = '<div class="ppe-error-message" style="display: block;">' . esc_html( $auth_required_message ) . '</div>';
+				$form_html             = str_replace( '<div class="ppe-error-message" style="display: none;"></div>', $replacement, $form_html );
 			}
 		}
 
@@ -275,11 +282,12 @@ class Blocks {
 	 * @return string
 	 */
 	public function render_protected_content_block( $attributes, $content ) {
-		$allowed_groups       = $attributes['allowedGroups'] ?? array();
+		$allowed_groups       = $attributes['allowedGroups'] ?? [];
 		$access_mode          = $attributes['accessMode'] ?? 'groups';
-		$allowed_roles        = $attributes['allowedRoles'] ?? array();
-		$allowed_capabilities = $attributes['allowedCapabilities'] ?? array();
+		$allowed_roles        = $attributes['allowedRoles'] ?? [];
+		$allowed_capabilities = $attributes['allowedCapabilities'] ?? [];
 		$disable_form         = ! empty( $attributes['disableForm'] );
+		$render_dynamically   = ! empty( $attributes['renderDynamically'] );
 
 		// Get global strings for defaults.
 		$string_manager   = new \PasswordProtectElite\Admin\StringManager();
@@ -287,16 +295,22 @@ class Blocks {
 		$class_name       = $attributes['className'] ?? '';
 		$align            = $attributes['align'] ?? '';
 
-		$password_manager = new PasswordManager();
+		// Check dynamic rendering: if enabled and access mode is groups, only render if URL matches.
+		if ( $render_dynamically && 'groups' === $access_mode ) {
+			if ( ! UrlMatcher::should_render_dynamically( $allowed_groups ) ) {
+				// URL doesn't match Auto-Protect URLs or is excluded, don't render content.
+				return '';
+			}
+		}
 
 		// Access Mode: roles -> show content only for matching roles, else empty.
 		if ( 'roles' === $access_mode ) {
 			if ( is_user_logged_in() ) {
 				$user  = wp_get_current_user();
-				$roles = is_array( $allowed_roles ) ? $allowed_roles : array();
+				$roles = \is_array( $allowed_roles ) ? $allowed_roles : [];
 				if ( $user && ! empty( $user->roles ) && ! empty( $roles ) ) {
 					foreach ( (array) $user->roles as $role_slug ) {
-						if ( in_array( $role_slug, $roles, true ) ) {
+						if ( \in_array( $role_slug, $roles, true ) ) {
 							return $content;
 						}
 					}
@@ -307,7 +321,7 @@ class Blocks {
 
 		// Access Mode: capabilities -> show content only if user has any capability, else empty.
 		if ( 'caps' === $access_mode ) {
-			$caps = is_array( $allowed_capabilities ) ? $allowed_capabilities : array();
+			$caps = is_array( $allowed_capabilities ) ? $allowed_capabilities : [];
 			if ( ! empty( $caps ) ) {
 				foreach ( $caps as $cap ) {
 					if ( current_user_can( sanitize_key( $cap ) ) ) {
@@ -328,19 +342,20 @@ class Blocks {
 			return '';
 		}
 
-		$form_args = array(
+		$form_args = [
 			'type'           => 'content',
 			'allowed_groups' => $allowed_groups,
 			'redirect_url'   => '',
 			'button_text'    => $string_manager->get_string( 'default_button_text' ),
 			'placeholder'    => $string_manager->get_string( 'default_placeholder' ),
 			'class'          => 'ppe-password-form ppe-protected-content-form',
-		);
+		];
 
-		$form_html = $password_manager->get_password_form( $form_args );
+		$password_manager = new PasswordManager();
+		$form_html        = $password_manager->get_password_form( $form_args );
 
 		// Build CSS classes including alignment.
-		$wrapper_classes = array( 'ppe-protected-content-block', 'ppe-locked' );
+		$wrapper_classes = [ 'ppe-protected-content-block', 'ppe-locked' ];
 		if ( ! empty( $class_name ) ) {
 			$wrapper_classes[] = $class_name;
 		}
@@ -383,7 +398,7 @@ class Blocks {
 					$group = Database::get_password_group( $group_id );
 					if ( $group && ! empty( $group->allowed_roles ) ) {
 						foreach ( (array) $user->roles as $role_slug ) {
-							if ( in_array( $role_slug, (array) $group->allowed_roles, true ) ) {
+							if ( \in_array( $role_slug, (array) $group->allowed_roles, true ) ) {
 								return $group_id;
 							}
 						}

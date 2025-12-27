@@ -10,7 +10,6 @@
 	"keywords": ["password", "protected", "content", "security", "section"],
 	"textdomain": "password-protect-elite",
 	"editorStyle": "file:./editor.css",
-	"render": "file:./render.php",
 	"attributes": {
 		"allowedGroups": {
 			"type": "array",
@@ -29,6 +28,10 @@
 			"default": []
 		},
 		"disableForm": {
+			"type": "boolean",
+			"default": false
+		},
+		"renderDynamically": {
 			"type": "boolean",
 			"default": false
 		},

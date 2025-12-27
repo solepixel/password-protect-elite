@@ -8,10 +8,9 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 
 /**
  * AccessController class.
@@ -42,34 +41,28 @@ class AccessController {
 		if ( 'redirect' === $behavior ) {
 			$page_id = absint( get_post_meta( $password_group->id, '_ppe_unauthenticated_redirect_page_id', true ) );
 			$custom  = esc_url_raw( get_post_meta( $password_group->id, '_ppe_unauthenticated_redirect_custom_url', true ) );
+
+			$redirect_args = [
+				'ppe_auth_required' => '1',
+				'ppe_group'         => (string) $password_group->id,
+			];
+
 			if ( $page_id ) {
 				$target = get_permalink( $page_id );
-				$target = add_query_arg(
-					array(
-						'ppe_auth_required' => '1',
-						'ppe_group'         => (string) $password_group->id,
-					),
-					$target
-				);
+				$target = add_query_arg( $redirect_args, $target );
 				wp_safe_redirect( $target );
 				exit;
 			}
 			if ( ! empty( $custom ) ) {
-				$target = add_query_arg(
-					array(
-						'ppe_auth_required' => '1',
-						'ppe_group'         => (string) $password_group->id,
-					),
-					$custom
-				);
+				$target = add_query_arg( $redirect_args, $custom );
 				wp_safe_redirect( $target );
 				exit;
 			}
-			// If redirect configured but invalid, fall through to dialog.
 		}
 
+		// If redirect configured but invalid, fall through to dialog.
 		if ( 'show_dialog' === $behavior ) {
-			call_user_func( $show_dialog_callback );
+			\call_user_func( $show_dialog_callback );
 			return;
 		}
 

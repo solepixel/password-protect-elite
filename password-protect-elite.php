@@ -30,6 +30,9 @@ const PPE_VERSION = '1.0.3';
 // Plugin file.
 define( 'PPE_PLUGIN_FILE', __FILE__ );
 
+// Plugin directory.
+define( 'PPE_PLUGIN_DIR', __DIR__ );
+
 // Plugin path.
 define( 'PPE_PLUGIN_PATH', plugin_dir_path( PPE_PLUGIN_FILE ) );
 
@@ -40,8 +43,8 @@ define( 'PPE_PLUGIN_URL', plugin_dir_url( PPE_PLUGIN_FILE ) );
 define( 'PPE_PLUGIN_BASENAME', plugin_basename( PPE_PLUGIN_FILE ) );
 
 // Load Composer autoloader.
-if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-	require_once __DIR__ . '/vendor/autoload.php';
+if ( file_exists( PPE_PLUGIN_DIR . '/vendor/autoload.php' ) ) {
+	require_once PPE_PLUGIN_DIR . '/vendor/autoload.php';
 }
 
 // Helper functions.
@@ -53,13 +56,13 @@ require_once 'includes/class-github-updater.php';
 // Initialize the plugin.
 ppelite();
 
-// Initialize GitHub updater (only in admin).
+// Initialize GitHub updater.
 if ( is_admin() ) {
-	// GitHub repository details for automatic updates
+	// GitHub repository details for automatic updates.
 	$github_updater = new PPE_GitHub_Updater(
-		__FILE__,
-		'solepixel', // GitHub username
-		'password-protect-elite', // GitHub repository name
-		'' // GitHub token (leave empty for public repos)
+		PPE_PLUGIN_FILE,
+		'solepixel', // GitHub username.
+		'password-protect-elite', // GitHub repository name.
+		'' // GitHub token (leave empty for public repos).
 	);
 }

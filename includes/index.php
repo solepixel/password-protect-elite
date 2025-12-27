@@ -1,6 +1,1 @@
-<?php
-/**
- * Silence is golden.
- *
- * @package PasswordProtectElite
- */
+<?php // Silence is golden.

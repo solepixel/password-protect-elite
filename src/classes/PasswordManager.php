@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -47,9 +47,9 @@ class PasswordManager {
 	public function __construct( $session_manager = null ) {
 		$this->session_manager = $session_manager ?? new SessionManager();
 
-		add_action( 'wp_ajax_ppe_validate_password', array( $this, 'ajax_validate_password' ) );
-		add_action( 'wp_ajax_nopriv_ppe_validate_password', array( $this, 'ajax_validate_password' ) );
-		add_action( 'init', array( $this, 'init_session' ) );
+		add_action( 'wp_ajax_ppe_validate_password', [ $this, 'ajax_validate_password' ] );
+		add_action( 'wp_ajax_nopriv_ppe_validate_password', [ $this, 'ajax_validate_password' ] );
+		add_action( 'init', [ $this, 'init_session' ] );
 	}
 
 	/**
@@ -58,7 +58,7 @@ class PasswordManager {
 	 * @return bool
 	 */
 	private function is_debug_mode_enabled() {
-		$settings = get_option( 'ppe_settings', array() );
+		$settings = get_option( 'ppe_settings', [] );
 		return isset( $settings['debug_mode'] ) && $settings['debug_mode'];
 	}
 
@@ -91,38 +91,49 @@ class PasswordManager {
 		}
 
 		// Bot honeypot: silently fail and count as attempt if filled.
-		$honeypot = isset( $_POST['ppe_hp'] ) ? sanitize_text_field( trim( (string) wp_unslash( $_POST['ppe_hp'] ) ) ) : '';
+		$honeypot            = isset( $_POST['ppe_hp'] ) ? sanitize_text_field( trim( (string) wp_unslash( $_POST['ppe_hp'] ) ) ) : '';
 		$client_fingerprints = $this->get_client_fingerprints();
 
-		// Check lockout before doing any processing.
-		$lockout_data = $this->get_active_lockout( $client_fingerprints );
-		if ( $lockout_data ) {
-			$remaining_seconds = max( 0, (int) $lockout_data['expires_at'] - time() );
-			$remaining_minutes = (int) ceil( $remaining_seconds / 60 );
-			/* translators: %d is the remaining minutes until the lockout expires. */
-			wp_send_json_error( sprintf( __( 'Too many failed attempts. Try again in %d minute(s).', 'password-protect-elite' ), $remaining_minutes ) );
+		// Check lockout before doing any processing (only if limit is not 0).
+		$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+		if ( $limit > 0 ) {
+			$lockout_data = $this->get_active_lockout( $client_fingerprints );
+			if ( $lockout_data ) {
+				$remaining_seconds = max( 0, (int) $lockout_data['expires_at'] - time() );
+				$remaining_minutes = (int) ceil( $remaining_seconds / 60 );
+				/* translators: %d is the remaining minutes until the lockout expires. */
+				wp_send_json_error( \sprintf( __( 'Too many failed attempts. Try again in %d minute(s).', 'password-protect-elite' ), $remaining_minutes ) );
+			}
 		}
 
-		$password     = sanitize_text_field( wp_unslash( $_POST['password'] ?? '' ) );
-		$secure_data  = sanitize_text_field( wp_unslash( $_POST['ppe_secure_data'] ?? '' ) );
+		$password    = sanitize_text_field( wp_unslash( $_POST['password'] ?? '' ) );
+		$secure_data = sanitize_text_field( wp_unslash( $_POST['ppe_secure_data'] ?? '' ) );
 
 		// Debug logging.
 		$this->debug_log( 'Password received: ' . $password );
 		$this->debug_log( 'Secure data received: ' . $secure_data );
 
 		if ( empty( $password ) || '' !== $honeypot ) {
-			// Treat empty password or triggered honeypot as a failed attempt.
-			$this->record_failed_attempt( $client_fingerprints );
-			$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
-			/* translators: %s is a short message about remaining attempts before lockout. */
-			wp_send_json_error( $remaining ? sprintf( __( 'Password is required. %s', 'password-protect-elite' ), $remaining ) : __( 'Password is required', 'password-protect-elite' ) );
+			// Treat empty password or triggered honeypot as a failed attempt (only if limit is not 0).
+			$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+			if ( $limit > 0 ) {
+				$this->record_failed_attempt( $client_fingerprints );
+				$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
+				/* translators: %s is a short message about remaining attempts before lockout. */
+				wp_send_json_error( $remaining ? sprintf( __( 'Password is required. %s', 'password-protect-elite' ), $remaining ) : __( 'Password is required', 'password-protect-elite' ) );
+			} else {
+				wp_send_json_error( __( 'Password is required', 'password-protect-elite' ) );
+			}
 		}
 
 		// Decrypt and validate secure form data.
 		$form_data = SecureData::validate_secure_form_data( $secure_data );
 		if ( false === $form_data ) {
 			$this->debug_log( 'Secure data validation failed.' );
-			$this->record_failed_attempt( $client_fingerprints );
+			$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+			if ( $limit > 0 ) {
+				$this->record_failed_attempt( $client_fingerprints );
+			}
 			wp_send_json_error( __( 'Invalid form data', 'password-protect-elite' ) );
 		}
 
@@ -157,10 +168,15 @@ class PasswordManager {
 			// Validate that the password group is in the allowed groups.
 			if ( ! empty( $allowed_groups ) && ! in_array( $password_group->id, $allowed_groups, true ) ) {
 				$this->debug_log( 'Password group not in allowed groups.' );
-				$this->record_failed_attempt( $client_fingerprints );
-				$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
-				/* translators: %s is a short message about remaining attempts before lockout. */
-				wp_send_json_error( $remaining ? sprintf( __( 'Password not authorized for this form. %s', 'password-protect-elite' ), $remaining ) : __( 'Password not authorized for this form', 'password-protect-elite' ) );
+				$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+				if ( $limit > 0 ) {
+					$this->record_failed_attempt( $client_fingerprints );
+					$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
+					/* translators: %s is a short message about remaining attempts before lockout. */
+					wp_send_json_error( $remaining ? sprintf( __( 'Password not authorized for this form. %s', 'password-protect-elite' ), $remaining ) : __( 'Password not authorized for this form', 'password-protect-elite' ) );
+				} else {
+					wp_send_json_error( __( 'Password not authorized for this form', 'password-protect-elite' ) );
+				}
 			}
 		} else {
 			$this->debug_log( 'No password group found for password "' . $password . '" and type "' . $type . '".' );
@@ -174,22 +190,29 @@ class PasswordManager {
 			$final_redirect = $this->get_redirect_url( $password_group, $redirect_url );
 
 			wp_send_json_success(
-				array(
+				[
 					'message'      => __( 'Password validated successfully', 'password-protect-elite' ),
 					'redirect_url' => $final_redirect,
 					'group_id'     => $password_group->id,
-				)
+				]
 			);
 		} else {
-			$this->record_failed_attempt( $client_fingerprints );
-			$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
-			if ( $this->get_active_lockout( $client_fingerprints ) ) {
-				$duration = \PasswordProtectElite\Admin\Settings::get_lockout_duration_minutes();
-				/* translators: %d is the number of minutes for the lockout duration. */
-				wp_send_json_error( sprintf( __( 'Too many failed attempts. You are locked out for %d minute(s).', 'password-protect-elite' ), $duration ) );
+			// Only record failed attempt if limit is not 0.
+			$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+			if ( $limit > 0 ) {
+				$this->record_failed_attempt( $client_fingerprints );
+				$remaining = $this->get_remaining_attempts_message( $client_fingerprints );
+				if ( $this->get_active_lockout( $client_fingerprints ) ) {
+					$duration = \PasswordProtectElite\Admin\Settings::get_lockout_duration_minutes();
+					/* translators: %d is the number of minutes for the lockout duration. */
+					wp_send_json_error( sprintf( __( 'Too many failed attempts. You are locked out for %d minute(s).', 'password-protect-elite' ), $duration ) );
+				}
+				/* translators: %s is a short message about remaining attempts before lockout. */
+				wp_send_json_error( $remaining ? sprintf( __( 'Invalid password. %s', 'password-protect-elite' ), $remaining ) : __( 'Invalid password', 'password-protect-elite' ) );
+			} else {
+				// Limit is 0, no lockout, just show error.
+				wp_send_json_error( __( 'Invalid password', 'password-protect-elite' ) );
 			}
-			/* translators: %s is a short message about remaining attempts before lockout. */
-			wp_send_json_error( $remaining ? sprintf( __( 'Invalid password. %s', 'password-protect-elite' ), $remaining ) : __( 'Invalid password', 'password-protect-elite' ) );
 		}
 	}
 
@@ -261,15 +284,15 @@ class PasswordManager {
 	 * @param array $args Form arguments.
 	 * @return string
 	 */
-	public function get_password_form( $args = array() ) {
-		$defaults = array(
+	public function get_password_form( $args = [] ) {
+		$defaults = [
 			'type'           => '',
-			'allowed_groups' => array(),
+			'allowed_groups' => [],
 			'redirect_url'   => '',
 			'button_text'    => __( 'Submit', 'password-protect-elite' ),
 			'placeholder'    => __( 'Enter password', 'password-protect-elite' ),
 			'class'          => 'ppe-password-form',
-		);
+		];
 
 		$args = wp_parse_args( $args, $defaults );
 
@@ -384,10 +407,10 @@ class PasswordManager {
 	private function get_client_fingerprints() {
 		$ip         = $this->get_client_ip();
 		$user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['HTTP_USER_AGENT'] ) ) : '';
-		return array(
+		return [
 			md5( 'ip:' . $ip ),
 			md5( 'ipua:' . $ip . '|' . $user_agent ),
-		);
+		];
 	}
 
 	/**
@@ -412,7 +435,13 @@ class PasswordManager {
 	 * @param array $fingerprints Fingerprints to update.
 	 */
 	private function record_failed_attempt( array $fingerprints ) {
-		$limit   = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+		$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+
+		// If limit is 0, lockout is disabled, so don't record attempts.
+		if ( 0 === $limit ) {
+			return false;
+		}
+
 		$minutes = \PasswordProtectElite\Admin\Settings::get_lockout_duration_minutes();
 		$expires = time() + ( $minutes * 60 );
 		$locked  = false;
@@ -421,17 +450,17 @@ class PasswordManager {
 			$key      = 'ppe_attempts_' . $fp;
 			$attempts = get_transient( $key );
 			if ( ! is_array( $attempts ) ) {
-				$attempts = array(
+				$attempts = [
 					'count'    => 0,
 					'first_at' => time(),
-				);
+				];
 			}
 			++$attempts['count'];
 			// Keep attempts window within a day to avoid unbounded growth.
 			set_transient( $key, $attempts, DAY_IN_SECONDS );
 
 			if ( $attempts['count'] >= $limit ) {
-				set_transient( 'ppe_lockout_' . $fp, array( 'expires_at' => $expires ), ( $minutes * 60 ) + 60 );
+				set_transient( 'ppe_lockout_' . $fp, [ 'expires_at' => $expires ], ( $minutes * 60 ) + 60 );
 				delete_transient( $key );
 				$locked = true;
 			}
@@ -447,7 +476,10 @@ class PasswordManager {
 	 */
 	private function reset_failed_attempts( array $fingerprints ) {
 		foreach ( $fingerprints as $fp ) {
+			// Clear failed attempts counter.
 			delete_transient( 'ppe_attempts_' . $fp );
+			// Also clear any active lockout for this fingerprint.
+			delete_transient( 'ppe_lockout_' . $fp );
 		}
 	}
 
@@ -459,11 +491,17 @@ class PasswordManager {
 	 */
 	private function get_remaining_attempts_message( array $fingerprints ) {
 		$limit = \PasswordProtectElite\Admin\Settings::get_password_attempts_limit();
+
+		// If limit is 0, lockout is disabled, so no message.
+		if ( 0 === $limit ) {
+			return '';
+		}
+
 		$min_remaining = $limit;
 		foreach ( $fingerprints as $fp ) {
-			$attempts = get_transient( 'ppe_attempts_' . $fp );
-			$count    = is_array( $attempts ) && isset( $attempts['count'] ) ? (int) $attempts['count'] : 0;
-			$remaining = max( 0, $limit - $count );
+			$attempts      = get_transient( 'ppe_attempts_' . $fp );
+			$count         = \is_array( $attempts ) && isset( $attempts['count'] ) ? (int) $attempts['count'] : 0;
+			$remaining     = max( 0, $limit - $count );
 			$min_remaining = min( $min_remaining, $remaining );
 		}
 		if ( $min_remaining <= 2 && $min_remaining > 0 ) {

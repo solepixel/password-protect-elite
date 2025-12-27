@@ -23,10 +23,18 @@
 	<arg name="cache"/>
 
 	<!-- Rules: Check WordPress Coding Standards -->
-	<rule ref="WordPress"/>
+	<rule ref="WordPress">
+		<!-- Exclude rules that disallow short array syntax -->
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
 
-	<!-- Allow short array syntax -->
-	<rule ref="Generic.Arrays.DisallowShortArraySyntax"/>
+	<!-- Include the WordPress-Extra standard. -->
+	<rule ref="WordPress-Extra">
+		<!-- Exclude rules that disallow short array syntax -->
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
 
 	<!-- Allow our current file naming structure -->
 	<rule ref="WordPress.Files.FileName">

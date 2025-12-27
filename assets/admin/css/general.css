@@ -2,219 +2,231 @@
  * Admin styles for Password Protect Elite
  */
 
+@import url('./vars.css');
+
 .ppe-admin-header {
-    margin: 20px 0;
+	margin: var(--ppe-spacing-2xl) 0;
 }
 
-.ppe-no-groups {
-    text-align: center;
-    padding: 40px 20px;
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.ppe-type-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.ppe-type-content {
-    background: #e3f2fd;
-    color: #1976d2;
-}
-
-.ppe-type-section {
-    background: #f3e5f5;
-    color: #7b1fa2;
-}
-
-.ppe-type-global {
-    background: #ffebee;
-    color: #c62828;
-}
-
-.ppe-status-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.ppe-status-active {
-    background: #e8f5e8;
-    color: #2e7d32;
-}
-
-.ppe-status-inactive {
-    background: #ffebee;
-    color: #c62828;
-}
-
-.ppe-no-redirect {
-    color: #999;
-    font-style: italic;
-}
-
-/* Modal Styles */
-.ppe-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 100000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ppe-modal-content {
-    background: #fff;
-    border-radius: 4px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.ppe-modal-header {
-    padding: 20px;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.ppe-modal-header h2 {
-    margin: 0;
-    font-size: 18px;
-}
-
-.ppe-modal-close {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ppe-modal-close:hover {
-    color: #000;
-}
-
-.ppe-modal-body {
-    padding: 20px;
-}
-
-.ppe-modal-footer {
-    padding: 20px;
-    border-top: 1px solid #ddd;
-    text-align: right;
-}
-
-.ppe-modal-footer .button {
-    margin-left: 10px;
-}
-
-/* Form Styles */
-.ppe-group-form .form-table th {
-    width: 150px;
-}
-
-.ppe-group-form .form-table td {
-    padding: 15px 10px;
-}
-
-.ppe-group-form .description {
-    margin-top: 5px;
-    color: #666;
-    font-style: italic;
-}
-
-/* Loading States */
 .ppe-loading {
-    opacity: 0.6;
-    pointer-events: none;
+	opacity: 0.6;
+	pointer-events: none;
 }
 
 .ppe-loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin: -10px 0 0 -10px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #0073aa;
-    border-radius: 50%;
-    animation: ppe-spin 1s linear infinite;
+	animation: ppe-spin 1s linear infinite;
+	border: 2px solid var(--ppe-color-gray-350);
+	border-radius: 50%;
+	border-top: 2px solid var(--ppe-color-primary);
+	content: '';
+	height: 20px;
+	left: 50%;
+	margin: -10px 0 0 -10px;
+	position: absolute;
+	top: 50%;
+	width: 20px;
 }
 
 @keyframes ppe-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
-/* Notices */
+.ppe-lock-icon {
+	color: var(--ppe-color-text-darkest);
+	font-size: var(--ppe-font-lg);
+	height: 18px;
+	margin-top: -2px;
+	position: relative;
+	vertical-align: middle;
+	width: 18px;
+}
+
+.ppe-modal {
+	align-items: center;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	left: 0;
+	position: fixed;
+	top: 0;
+	width: 100%;
+	z-index: var(--ppe-z-index-modal);
+}
+
+.ppe-modal-close {
+	align-items: center;
+	background: none;
+	border: none;
+	color: var(--ppe-color-text-medium);
+	cursor: pointer;
+	display: flex;
+	font-size: 24px;
+	height: 30px;
+	justify-content: center;
+	padding: 0;
+	width: 30px;
+}
+
+.ppe-modal-close:hover {
+	color: var(--ppe-color-black);
+}
+
+.ppe-modal-content {
+	background: var(--ppe-color-white);
+	border-radius: var(--ppe-radius-base);
+	box-shadow: var(--ppe-shadow-md);
+	max-height: 90vh;
+	max-width: 600px;
+	overflow-y: auto;
+	width: 90%;
+}
+
+.ppe-modal-footer {
+	border-top: 1px solid var(--ppe-color-gray-700);
+	padding: var(--ppe-spacing-2xl);
+	text-align: right;
+}
+
+.ppe-modal-footer .button {
+	margin-left: var(--ppe-spacing-base);
+}
+
+.ppe-modal-header {
+	align-items: center;
+	border-bottom: 1px solid var(--ppe-color-gray-700);
+	display: flex;
+	justify-content: space-between;
+	padding: var(--ppe-spacing-2xl);
+}
+
+.ppe-modal-header h2 {
+	font-size: var(--ppe-font-lg);
+	margin: 0;
+}
+
+.ppe-modal-body {
+	padding: var(--ppe-spacing-2xl);
+}
+
+.ppe-no-groups {
+	background: var(--ppe-color-gray-100);
+	border: 1px solid var(--ppe-color-gray-700);
+	border-radius: var(--ppe-radius-base);
+	padding: var(--ppe-spacing-5xl) var(--ppe-spacing-2xl);
+	text-align: center;
+}
+
+.ppe-no-redirect {
+	color: var(--ppe-color-text-light);
+	font-style: italic;
+}
+
 .ppe-notice {
-    padding: 12px;
-    margin: 15px 0;
-    border-left: 4px solid;
-    background: #fff;
-}
-
-.ppe-notice-success {
-    border-left-color: #46b450;
-    background: #f7fff7;
+	background: var(--ppe-color-white);
+	border-left: 4px solid;
+	margin: var(--ppe-spacing-xl) 0;
+	padding: var(--ppe-spacing-lg);
 }
 
 .ppe-notice-error {
-    border-left-color: #dc3232;
-    background: #fff7f7;
+	background: var(--ppe-color-error-bg-notice);
+	border-left-color: var(--ppe-color-error-notice);
+}
+
+.ppe-notice-success {
+	background: var(--ppe-color-success-bg-notice);
+	border-left-color: var(--ppe-color-success-notice);
 }
 
 .ppe-notice-warning {
-    border-left-color: #ffb900;
-    background: #fffbf0;
+	background: var(--ppe-color-warning-bg-light);
+	border-left-color: var(--ppe-color-warning);
+}
+
+.ppe-status-badge {
+	border-radius: var(--ppe-radius-sm);
+	display: inline-block;
+	font-size: var(--ppe-font-xs);
+	font-weight: 600;
+	padding: var(--ppe-spacing-xs) var(--ppe-spacing-md);
+	text-transform: uppercase;
+}
+
+.ppe-status-active {
+	background: var(--ppe-color-success-bg-light);
+	color: var(--ppe-color-success-light);
+}
+
+.ppe-status-inactive {
+	background: var(--ppe-color-error-bg-light);
+	color: var(--ppe-color-error-dark);
+}
+
+.ppe-type-badge {
+	border-radius: var(--ppe-radius-sm);
+	display: inline-block;
+	font-size: var(--ppe-font-xs);
+	font-weight: 600;
+	padding: var(--ppe-spacing-xs) var(--ppe-spacing-md);
+	text-transform: uppercase;
+}
+
+.ppe-type-content {
+	background: var(--ppe-color-primary-bg);
+	color: var(--ppe-color-primary-light);
+}
+
+.ppe-type-global {
+	background: var(--ppe-color-error-bg-light);
+	color: var(--ppe-color-error-dark);
+}
+
+.ppe-type-section {
+	background: var(--ppe-color-purple-bg);
+	color: var(--ppe-color-purple);
+}
+
+.ppe-group-form .form-table th {
+	width: 150px;
+}
+
+.ppe-group-form .form-table td {
+	padding: var(--ppe-spacing-xl) var(--ppe-spacing-base);
+}
+
+.ppe-group-form .description {
+	color: var(--ppe-color-text-medium);
+	font-style: italic;
+	margin-top: var(--ppe-spacing-sm);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .ppe-modal-content {
-        width: 95%;
-        margin: 20px;
-    }
+	.ppe-modal-content {
+		margin: var(--ppe-spacing-2xl);
+		width: 95%;
+	}
 
-    .ppe-modal-header,
-    .ppe-modal-body,
-    .ppe-modal-footer {
-        padding: 15px;
-    }
+	.ppe-modal-header,
+	.ppe-modal-body,
+	.ppe-modal-footer {
+		padding: var(--ppe-spacing-xl);
+	}
 
-    .ppe-group-form .form-table th,
-    .ppe-group-form .form-table td {
-        display: block;
-        width: 100%;
-        padding: 10px 0;
-    }
+	.ppe-group-form .form-table th,
+	.ppe-group-form .form-table td {
+		display: block;
+		padding: var(--ppe-spacing-base) 0;
+		width: 100%;
+	}
 
-    .ppe-group-form .form-table th {
-        padding-bottom: 5px;
-    }
+	.ppe-group-form .form-table th {
+		padding-bottom: var(--ppe-spacing-sm);
+	}
 }

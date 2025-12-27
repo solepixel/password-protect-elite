@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -33,10 +33,10 @@ class MenuIntegration {
 		$this->session_manager = $session_manager ?? new SessionManager();
 
 		// Hook into WordPress menu system.
-		add_filter( 'wp_nav_menu_items', array( $this, 'modify_menu_items' ), 10, 2 );
-		add_filter( 'render_block_core/loginout', array( $this, 'modify_loginout_block' ), 20, 2 );
-		add_filter( 'loginout', array( $this, 'modify_loginout_link' ), 10, 2 );
-		add_action( 'init', array( $this, 'handle_logout_request' ) );
+		add_filter( 'wp_nav_menu_items', [ $this, 'modify_menu_items' ], 10, 2 );
+		add_filter( 'render_block_core/loginout', [ $this, 'modify_loginout_block' ], 20, 2 );
+		add_filter( 'loginout', [ $this, 'modify_loginout_link' ], 10, 2 );
+		add_action( 'init', [ $this, 'handle_logout_request' ] );
 	}
 
 	/**
@@ -51,11 +51,10 @@ class MenuIntegration {
 	/**
 	 * Modify menu items to change login/logout links.
 	 *
-	 * @param string   $items The HTML list content for the menu items.
-	 * @param \WP_Post $args  An object containing wp_nav_menu() arguments.
+	 * @param string $items The HTML list content for the menu items.
 	 * @return string Modified menu items.
 	 */
-	public function modify_menu_items( $items, $args ) {
+	public function modify_menu_items( $items ) {
 		// Only modify if user is not logged in as WordPress user but has password session.
 		if ( is_user_logged_in() || ! $this->has_active_password_session() ) {
 			return $items;
@@ -92,10 +91,10 @@ class MenuIntegration {
 	 */
 	private function get_logout_url() {
 		return add_query_arg(
-			array(
+			[
 				'ppe_action' => 'logout',
 				'ppe_nonce'  => wp_create_nonce( 'ppe_menu_logout' ),
-			),
+			],
 			home_url()
 		);
 	}
@@ -104,10 +103,9 @@ class MenuIntegration {
 	 * Modify the Core Login/Logout block output.
 	 *
 	 * @param string $block_content Block HTML content.
-	 * @param array  $block         Block data.
 	 * @return string Modified block content.
 	 */
-	public function modify_loginout_block( $block_content, $block ) {
+	public function modify_loginout_block( $block_content ) {
 		// Only modify if user is not logged in but has password session.
 		if ( is_user_logged_in() || ! $this->has_active_password_session() ) {
 			return $block_content;
@@ -120,8 +118,7 @@ class MenuIntegration {
 		$block_content = str_replace( $login_url, $logout_url, $block_content );
 
 		// Replace "Log in" text with "Log out" (case variations).
-		$block_content = preg_replace( '/>\s*Log in\s*</i', '>Log out<', $block_content );
-		$block_content = preg_replace( '/>\s*Login\s*</i', '>Log out<', $block_content );
+		$block_content = preg_replace( '/>\s*Log\s?in\s*</i', '>Log out<', $block_content );
 
 		return $block_content;
 	}
@@ -141,11 +138,11 @@ class MenuIntegration {
 
 		// Build logout URL with optional redirect.
 		$logout_url = add_query_arg(
-			array(
+			[
 				'ppe_action'  => 'logout',
 				'ppe_nonce'   => wp_create_nonce( 'ppe_menu_logout' ),
-				'redirect_to' => ! empty( $redirect ) ? urlencode( $redirect ) : '',
-			),
+				'redirect_to' => ! empty( $redirect ) ? rawurlencode( $redirect ) : '',
+			],
 			home_url()
 		);
 
@@ -187,4 +184,3 @@ class MenuIntegration {
 		exit;
 	}
 }
-

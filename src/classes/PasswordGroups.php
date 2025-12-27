@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -21,19 +21,19 @@ class PasswordGroups {
 	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'init', array( $this, 'register_post_type' ) );
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ) );
-		add_action( 'save_post_ppe_password_group', array( $this, 'save_meta_data' ) );
-		add_filter( 'manage_ppe_password_group_posts_columns', array( $this, 'add_columns' ) );
-		add_action( 'manage_ppe_password_group_posts_custom_column', array( $this, 'render_columns' ), 10, 2 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+		add_action( 'init', [ $this, 'register_post_type' ] );
+		add_action( 'add_meta_boxes', [ $this, 'add_meta_boxes' ] );
+		add_action( 'save_post_ppe_password_group', [ $this, 'save_meta_data' ] );
+		add_filter( 'manage_ppe_password_group_posts_columns', [ $this, 'add_columns' ] );
+		add_action( 'manage_ppe_password_group_posts_custom_column', [ $this, 'render_columns' ], 10, 2 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
 	}
 
 	/**
 	 * Register the Password Groups Custom Post Type.
 	 */
 	public function register_post_type() {
-		$labels = array(
+		$labels = [
 			'name'                  => _x( 'Password Groups', 'Post type general name', 'password-protect-elite' ),
 			'singular_name'         => _x( 'Password Group', 'Post type singular name', 'password-protect-elite' ),
 			'menu_name'             => _x( 'Password Groups', 'Admin Menu text', 'password-protect-elite' ),
@@ -58,9 +58,9 @@ class PasswordGroups {
 			'filter_items_list'     => _x( 'Filter password groups list', 'Screen reader text for the filter links', 'password-protect-elite' ),
 			'items_list_navigation' => _x( 'Password groups list navigation', 'Screen reader text for the pagination', 'password-protect-elite' ),
 			'items_list'            => _x( 'Password groups list', 'Screen reader text for the items list', 'password-protect-elite' ),
-		);
+		];
 
-		$args = array(
+		$args = [
 			'labels'             => $labels,
 			'public'             => false,
 			'publicly_queryable' => false,
@@ -76,8 +76,8 @@ class PasswordGroups {
 			'hierarchical'       => false,
 			'menu_position'      => 25, // After Comments.
 			'menu_icon'          => 'dashicons-lock',
-			'supports'           => array( 'title' ),
-			'capabilities'       => array(
+			'supports'           => [ 'title' ],
+			'capabilities'       => [
 				'edit_post'          => 'manage_options',
 				'read_post'          => 'manage_options',
 				'delete_post'        => 'manage_options',
@@ -85,8 +85,8 @@ class PasswordGroups {
 				'edit_others_posts'  => 'manage_options',
 				'publish_posts'      => 'manage_options',
 				'read_private_posts' => 'manage_options',
-			),
-		);
+			],
+		];
 
 		register_post_type( 'ppe_password_group', $args );
 	}
@@ -98,7 +98,7 @@ class PasswordGroups {
 		add_meta_box(
 			'ppe_password_group_settings',
 			__( 'Password Group Settings', 'password-protect-elite' ),
-			array( $this, 'render_meta_box' ),
+			[ $this, 'render_meta_box' ],
 			'ppe_password_group',
 			'normal',
 			'high'
@@ -119,19 +119,22 @@ class PasswordGroups {
 		$redirect_type        = get_post_meta( $post->ID, '_ppe_redirect_type', true );
 		$redirect_page_id     = get_post_meta( $post->ID, '_ppe_redirect_page_id', true );
 		$redirect_custom_url  = get_post_meta( $post->ID, '_ppe_redirect_custom_url', true );
-		$unauthenticated_behavior = get_post_meta( $post->ID, '_ppe_unauthenticated_behavior', true );
-		$unauthenticated_redirect_type = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_type', true );
-		$unauthenticated_redirect_page_id = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_page_id', true );
-		$unauthenticated_redirect_custom_url = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_custom_url', true );
-		$logout_redirect_type = get_post_meta( $post->ID, '_ppe_logout_redirect_type', true );
-		$logout_redirect_page_id = get_post_meta( $post->ID, '_ppe_logout_redirect_page_id', true );
-		$logout_redirect_custom_url = get_post_meta( $post->ID, '_ppe_logout_redirect_custom_url', true );
-		$exclude_urls         = get_post_meta( $post->ID, '_ppe_exclude_urls', true );
-		$auto_protect_urls    = get_post_meta( $post->ID, '_ppe_auto_protect_urls', true );
-		$allowed_roles        = get_post_meta( $post->ID, '_ppe_allowed_roles', true );
 
-		if ( empty( $additional_passwords ) || ! is_array( $additional_passwords ) ) {
-			$additional_passwords = array();
+		$unauthenticated_behavior            = get_post_meta( $post->ID, '_ppe_unauthenticated_behavior', true );
+		$unauthenticated_redirect_type       = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_type', true );
+		$unauthenticated_redirect_page_id    = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_page_id', true );
+		$unauthenticated_redirect_custom_url = get_post_meta( $post->ID, '_ppe_unauthenticated_redirect_custom_url', true );
+
+		$logout_redirect_type       = get_post_meta( $post->ID, '_ppe_logout_redirect_type', true );
+		$logout_redirect_page_id    = get_post_meta( $post->ID, '_ppe_logout_redirect_page_id', true );
+		$logout_redirect_custom_url = get_post_meta( $post->ID, '_ppe_logout_redirect_custom_url', true );
+
+		$exclude_urls      = get_post_meta( $post->ID, '_ppe_exclude_urls', true );
+		$auto_protect_urls = get_post_meta( $post->ID, '_ppe_auto_protect_urls', true );
+		$allowed_roles     = get_post_meta( $post->ID, '_ppe_allowed_roles', true );
+
+		if ( empty( $additional_passwords ) || ! \is_array( $additional_passwords ) ) {
+			$additional_passwords = [];
 		}
 
 		// Set default protection type if not set.
@@ -195,16 +198,16 @@ class PasswordGroups {
 					<th scope="row"><?php esc_html_e( 'User Roles', 'password-protect-elite' ); ?></th>
 					<td>
 						<?php
-						if ( empty( $allowed_roles ) || ! is_array( $allowed_roles ) ) {
-							$allowed_roles = array();
+						if ( empty( $allowed_roles ) || ! \is_array( $allowed_roles ) ) {
+							$allowed_roles = [];
 						}
-						$roles = function_exists( 'get_editable_roles' ) ? get_editable_roles() : array();
+						$roles = function_exists( 'get_editable_roles' ) ? get_editable_roles() : [];
 						if ( ! empty( $roles ) ) :
-						?>
+							?>
 							<div class="ppe-roles-checkboxes">
 								<?php foreach ( $roles as $role_slug => $role_info ) : ?>
 									<label style="display:block;margin-bottom:4px;">
-										<input type="checkbox" name="ppe_allowed_roles[]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( in_array( $role_slug, $allowed_roles, true ) ); ?>>
+										<input type="checkbox" name="ppe_allowed_roles[]" value="<?php echo esc_attr( $role_slug ); ?>" <?php checked( \in_array( $role_slug, $allowed_roles, true ) ); ?>>
 										<?php echo esc_html( translate_user_role( $role_info['name'] ) ); ?>
 									</label>
 								<?php endforeach; ?>
@@ -252,13 +255,13 @@ class PasswordGroups {
 					<td>
 						<?php
 						wp_dropdown_pages(
-							array(
+							[
 								'name'              => 'ppe_redirect_page_id',
 								'id'                => 'ppe_redirect_page_id',
-								'selected'          => $redirect_page_id,
-								'show_option_none'  => __( '— Select —', 'password-protect-elite' ),
+								'selected'          => esc_html( $redirect_page_id ),
+								'show_option_none'  => esc_html__( '— Select —', 'password-protect-elite' ),
 								'option_none_value' => 0,
-							)
+							]
 						);
 						?>
 						<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect to.', 'password-protect-elite' ); ?></p>
@@ -323,13 +326,13 @@ class PasswordGroups {
 				<td>
 					<?php
 					wp_dropdown_pages(
-						array(
+						[
 							'name'              => 'ppe_unauthenticated_redirect_page_id',
 							'id'                => 'ppe_unauthenticated_redirect_page_id',
-							'selected'          => $unauthenticated_redirect_page_id,
-							'show_option_none'  => __( '— Select —', 'password-protect-elite' ),
+							'selected'          => esc_html( $unauthenticated_redirect_page_id ),
+							'show_option_none'  => esc_html__( '— Select —', 'password-protect-elite' ),
 							'option_none_value' => 0,
-						)
+						]
 					);
 					?>
 					<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect unauthenticated users to.', 'password-protect-elite' ); ?></p>
@@ -367,13 +370,13 @@ class PasswordGroups {
 					<td>
 						<?php
 						wp_dropdown_pages(
-							array(
+							[
 								'name'              => 'ppe_logout_redirect_page_id',
 								'id'                => 'ppe_logout_redirect_page_id',
-								'selected'          => $logout_redirect_page_id,
-								'show_option_none'  => __( '— Select —', 'password-protect-elite' ),
+								'selected'          => esc_html( $logout_redirect_page_id ),
+								'show_option_none'  => esc_html__( '— Select —', 'password-protect-elite' ),
 								'option_none_value' => 0,
-							)
+							]
 						);
 						?>
 						<p class="description"><?php esc_html_e( 'Choose an existing WordPress page to redirect users to after logout.', 'password-protect-elite' ); ?></p>
@@ -423,7 +426,7 @@ class PasswordGroups {
 		}
 
 		// Sanitize and save additional passwords.
-		if ( isset( $_POST['ppe_additional_passwords'] ) && is_array( $_POST['ppe_additional_passwords'] ) ) {
+		if ( isset( $_POST['ppe_additional_passwords'] ) && \is_array( $_POST['ppe_additional_passwords'] ) ) {
 			$additional_passwords = array_map( 'sanitize_text_field', wp_unslash( $_POST['ppe_additional_passwords'] ) );
 			update_post_meta( $post_id, '_ppe_additional_passwords', $additional_passwords );
 		} else {
@@ -431,7 +434,7 @@ class PasswordGroups {
 		}
 
 		// Sanitize and save allowed roles.
-		if ( isset( $_POST['ppe_allowed_roles'] ) && is_array( $_POST['ppe_allowed_roles'] ) ) {
+		if ( isset( $_POST['ppe_allowed_roles'] ) && \is_array( $_POST['ppe_allowed_roles'] ) ) {
 			$roles = array_map( 'sanitize_key', wp_unslash( $_POST['ppe_allowed_roles'] ) );
 			$roles = array_values( array_unique( array_filter( $roles ) ) );
 			if ( ! empty( $roles ) ) {
@@ -522,14 +525,14 @@ class PasswordGroups {
 	 * @return array Modified columns.
 	 */
 	public function add_columns( $columns ) {
-		$new_columns = array(
+		$new_columns = [
 			'cb'              => $columns['cb'],
 			'title'           => $columns['title'],
-			'master_password' => __( 'Master Password', 'password-protect-elite' ),
-			'protection_type' => __( 'Protection Type', 'password-protect-elite' ),
-			'redirect_to'     => __( 'Redirect To', 'password-protect-elite' ),
+			'master_password' => esc_html__( 'Master Password', 'password-protect-elite' ),
+			'protection_type' => esc_html__( 'Protection Type', 'password-protect-elite' ),
+			'redirect_to'     => esc_html__( 'Redirect To', 'password-protect-elite' ),
 			'date'            => $columns['date'],
-		);
+		];
 		return $new_columns;
 	}
 
@@ -576,15 +579,15 @@ class PasswordGroups {
 		if ( 'ppe_password_group' === $post_type && ( 'post.php' === $hook || 'post-new.php' === $hook ) ) {
 			// Enqueue WordPress core password strength meter.
 			wp_enqueue_script( 'password-strength-meter' );
-			wp_enqueue_script( 'ppe-password-groups-js', PPE_PLUGIN_URL . 'assets/admin/js/password-groups.js', array( 'jquery', 'password-strength-meter' ), PPE_VERSION, true );
-			wp_enqueue_style( 'ppe-password-groups-css', PPE_PLUGIN_URL . 'assets/admin/css/password-groups.css', array(), PPE_VERSION );
+			wp_enqueue_script( 'ppe-password-groups-js', PPE_PLUGIN_URL . 'assets/admin/js/password-groups.js', [ 'jquery', 'password-strength-meter' ], PPE_VERSION, true );
+			wp_enqueue_style( 'ppe-password-groups-css', PPE_PLUGIN_URL . 'assets/admin/css/password-groups.css', [], PPE_VERSION );
 
 			// Localize script with strings.
 			wp_localize_script(
 				'ppe-password-groups-js',
 				'ppeCptAdmin',
-				array(
-					'strings' => array(
+				[
+					'strings' => [
 						'enterPassword'          => __( 'Enter additional password', 'password-protect-elite' ),
 						'remove'                 => __( 'Remove', 'password-protect-elite' ),
 						'masterPasswordRequired' => __( 'Master password is required.', 'password-protect-elite' ),
@@ -594,8 +597,8 @@ class PasswordGroups {
 						'medium'                 => _x( 'Medium', 'password strength', 'password-protect-elite' ),
 						'strong'                 => _x( 'Strong', 'password strength', 'password-protect-elite' ),
 						'veryStrong'             => _x( 'Very strong', 'password strength', 'password-protect-elite' ),
-					),
-				)
+					],
+				]
 			);
 		}
 	}

@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -99,7 +99,7 @@ class UrlMatcher {
 	 * @return string Current request URL.
 	 */
 	public static function get_current_url() {
-		$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' );
+		$request_uri = \wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' );
 		return $request_uri;
 	}
 
@@ -139,5 +139,57 @@ class UrlMatcher {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Check if content should render dynamically based on URL matching.
+	 *
+	 * Checks if the current URL matches any of the allowed password groups' Auto-Protect URLs,
+	 * while respecting the Exclude URLs setting. Returns true only if URL matches Auto-Protect
+	 * URLs AND is not excluded.
+	 *
+	 * @param array $allowed_group_ids Array of password group IDs.
+	 * @return bool True if content should render, false otherwise.
+	 */
+	public static function should_render_dynamically( $allowed_group_ids ) {
+		if ( empty( $allowed_group_ids ) || ! is_array( $allowed_group_ids ) ) {
+			return false;
+		}
+
+		$current_url = self::get_current_url();
+
+		// Check each allowed group.
+		foreach ( $allowed_group_ids as $group_id ) {
+			$group_id = absint( $group_id );
+			if ( ! $group_id ) {
+				continue;
+			}
+
+			// Get Auto-Protect URLs for this group.
+			$auto_protect_urls = get_post_meta( $group_id, '_ppe_auto_protect_urls', true );
+
+			// If no Auto-Protect URLs are set, this group doesn't match.
+			if ( empty( $auto_protect_urls ) ) {
+				continue;
+			}
+
+			// Check if current URL matches Auto-Protect URLs.
+			if ( ! self::url_matches_patterns( $current_url, $auto_protect_urls ) ) {
+				continue;
+			}
+
+			// URL matches Auto-Protect URLs, now check if it's excluded.
+			$exclude_urls = get_post_meta( $group_id, '_ppe_exclude_urls', true );
+			if ( ! empty( $exclude_urls ) && self::url_matches_patterns( $current_url, $exclude_urls ) ) {
+				// URL is excluded, don't render.
+				return false;
+			}
+
+			// URL matches Auto-Protect URLs and is not excluded.
+			return true;
+		}
+
+		// No groups matched.
+		return false;
 	}
 }

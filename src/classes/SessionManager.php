@@ -8,7 +8,7 @@
 namespace PasswordProtectElite;
 
 // Prevent direct access.
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! \defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -41,7 +41,7 @@ class SessionManager {
 		}
 
 		// Hook into WordPress logout to also clear password sessions.
-		add_action( 'wp_logout', array( $this, 'clear_session_on_wp_logout' ) );
+		add_action( 'wp_logout', [ $this, 'clear_session_on_wp_logout' ] );
 	}
 
 	/**
@@ -63,11 +63,11 @@ class SessionManager {
 		$validated_data = $this->get_session_data();
 
 		// Store group ID and password hash for re-validation.
-		$validated_data[ $group_id ] = array(
+		$validated_data[ $group_id ] = [
 			'group_id'      => $group_id,
 			'password_hash' => $password_hash,
 			'timestamp'     => time(),
-		);
+		];
 
 		return $this->save_session_data( $validated_data );
 	}
@@ -119,7 +119,7 @@ class SessionManager {
 		$session_duration_seconds = $session_duration_hours * HOUR_IN_SECONDS;
 
 		// Check if current time exceeds the session duration.
-		return ( time() - $timestamp ) > $session_duration_seconds;
+		return time() - $timestamp > $session_duration_seconds;
 	}
 
 	/**
@@ -181,14 +181,14 @@ class SessionManager {
 		setcookie(
 			self::COOKIE_NAME,
 			$session_id,
-			array(
+			[
 				'expires'  => $expiry,
 				'path'     => COOKIEPATH,
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => is_ssl(),
 				'httponly' => true,
 				'samesite' => 'Lax',
-			)
+			]
 		);
 
 		$_COOKIE[ self::COOKIE_NAME ] = $session_id;
@@ -201,14 +201,14 @@ class SessionManager {
 		setcookie(
 			self::COOKIE_NAME,
 			'',
-			array(
+			[
 				'expires'  => time() - YEAR_IN_SECONDS,
 				'path'     => COOKIEPATH,
 				'domain'   => COOKIE_DOMAIN,
 				'secure'   => is_ssl(),
 				'httponly' => true,
 				'samesite' => 'Lax',
-			)
+			]
 		);
 
 		unset( $_COOKIE[ self::COOKIE_NAME ] );
@@ -222,11 +222,11 @@ class SessionManager {
 	private function get_session_data() {
 		$session_id = $this->get_session_id();
 		if ( ! $session_id ) {
-			return array();
+			return [];
 		}
 
 		$data = get_transient( 'ppe_session_' . $session_id );
-		return is_array( $data ) ? $data : array();
+		return is_array( $data ) ? $data : [];
 	}
 
 	/**
@@ -246,4 +246,3 @@ class SessionManager {
 		return set_transient( 'ppe_session_' . $session_id, $data, $session_duration * HOUR_IN_SECONDS );
 	}
 }
-

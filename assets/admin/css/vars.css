@@ -1,0 +1,114 @@
+/**
+ * CSS Variables for Password Protect Elite
+ * Import this file into other CSS files for consistent theming
+ */
+
+:root {
+	/* Colors - Primary */
+	--ppe-color-primary: #0073aa;
+	--ppe-color-primary-dark: #005177;
+	--ppe-color-primary-light: #2271b1;
+	--ppe-color-primary-bg: #e3f2fd;
+	--ppe-color-primary-border: #b3d9ff;
+	--ppe-color-primary-bg-light: #e7f3ff;
+
+	/* Colors - Success/Green */
+	--ppe-color-success: #28a745;
+	--ppe-color-success-dark: #218838;
+	--ppe-color-success-text: #155724;
+	--ppe-color-success-bg: #d4edda;
+	--ppe-color-success-border: #c3e6cb;
+	--ppe-color-success-light: #2e7d32;
+	--ppe-color-success-medium: #00a32a;
+	--ppe-color-success-dark-alt: #047857;
+	--ppe-color-success-notice: #46b450;
+	--ppe-color-success-bg-light: #e8f5e8;
+	--ppe-color-success-bg-notice: #f7fff7;
+
+	/* Colors - Error/Red */
+	--ppe-color-error: #d63638;
+	--ppe-color-error-dark: #c62828;
+	--ppe-color-error-text: #721c24;
+	--ppe-color-error-bg: #f8d7da;
+	--ppe-color-error-border: #f5c6cb;
+	--ppe-color-error-notice: #dc3232;
+	--ppe-color-error-bg-light: #ffebee;
+	--ppe-color-error-bg-notice: #fff7f7;
+
+	/* Colors - Warning/Yellow */
+	--ppe-color-warning: #ffb900;
+	--ppe-color-warning-text: #856404;
+	--ppe-color-warning-bg: #fff3cd;
+	--ppe-color-warning-border: #ffeaa7;
+	--ppe-color-warning-medium: #dba617;
+	--ppe-color-warning-bg-light: #fffbf0;
+
+	/* Colors - Purple */
+	--ppe-color-purple: #7b1fa2;
+	--ppe-color-purple-bg: #f3e5f5;
+	--ppe-color-purple-medium: #826eb4;
+
+	/* Colors - Gray Scale */
+	--ppe-color-white: #fff;
+	--ppe-color-black: #000;
+	--ppe-color-gray-50: #fafafa;
+	--ppe-color-gray-100: #f9f9f9;
+	--ppe-color-gray-200: #f8f9fa;
+	--ppe-color-gray-300: #f1f1f1;
+	--ppe-color-gray-350: #f3f3f3;
+	--ppe-color-gray-400: #e2e8f0;
+	--ppe-color-gray-500: #e1e5e9;
+	--ppe-color-gray-600: #e9ecef;
+	--ppe-color-gray-700: #ddd;
+	--ppe-color-gray-800: #c3c4c7;
+	--ppe-color-gray-900: #ccd0d4;
+	--ppe-color-text-light: #999;
+	--ppe-color-text-medium: #666;
+	--ppe-color-text-dark: #555;
+	--ppe-color-text-darker: #555d66;
+	--ppe-color-text-darkest: #646970;
+	--ppe-color-text-primary: #1d2327;
+	--ppe-color-text-secondary: #23282d;
+	--ppe-color-text-tertiary: #3c434a;
+	--ppe-color-text-muted: #6b7280;
+
+	/* Spacing */
+	--ppe-spacing-xs: 4px;
+	--ppe-spacing-sm: 5px;
+	--ppe-spacing-md: 8px;
+	--ppe-spacing-base: 10px;
+	--ppe-spacing-lg: 12px;
+	--ppe-spacing-xl: 15px;
+	--ppe-spacing-2xl: 20px;
+	--ppe-spacing-3xl: 24px;
+	--ppe-spacing-4xl: 30px;
+	--ppe-spacing-5xl: 40px;
+
+	/* Border Radius */
+	--ppe-radius-sm: 3px;
+	--ppe-radius-base: 4px;
+	--ppe-radius-md: 6px;
+	--ppe-radius-lg: 8px;
+
+	/* Font Sizes */
+	--ppe-font-xs: 11px;
+	--ppe-font-sm: 12px;
+	--ppe-font-base: 14px;
+	--ppe-font-md: 16px;
+	--ppe-font-lg: 18px;
+
+	/* Transitions */
+	--ppe-transition-fast: 0.2s ease;
+	--ppe-transition-base: 0.3s ease;
+	--ppe-transition-slow: 0.25s ease;
+
+	/* Z-Index */
+	--ppe-z-index-modal: 100000;
+
+	/* Shadows */
+	--ppe-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+	--ppe-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
+	--ppe-shadow-focus: 0 0 0 3px rgba(0, 115, 170, 0.1);
+	--ppe-shadow-focus-input: 0 0 0 1px var(--ppe-color-primary);
+}
+
