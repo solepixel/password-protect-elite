@@ -620,7 +620,7 @@ class Settings {
 		<p class="description">
 			<?php
 			\printf(
-				'%s (%1$d-%2$d). <br/> %s',
+				'%1$s (%2$d-%3$d). <br/> %4$s',
 				esc_html__( 'Maximum number of failed password attempts before temporary lockout', 'password-protect-elite' ),
 				esc_html( self::PASSWORD_ATTEMPTS_LIMIT_MIN ),
 				esc_html( self::PASSWORD_ATTEMPTS_LIMIT_MAX ),
@@ -649,7 +649,7 @@ class Settings {
 		<p class="description">
 			<?php
 			\printf(
-				'%s (%1$d-%2$d).',
+				'%1$s (%2$d-%3$d).',
 				esc_html__( 'Duration of temporary lockout in minute', 'password-protect-elite' ),
 				esc_html( self::LOCKOUT_DURATION_MIN ),
 				esc_html( self::LOCKOUT_DURATION_MAX )
