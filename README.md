@@ -134,6 +134,13 @@ npm run dev
 
 ## Changelog
 
+### 1.1.4
+- Readme file change log corrections
+- Safer uninstall process.
+- Upgrade bug fix
+- Settings page text formatting fix
+- Small fix to dynamic change log generation
+
 ### 1.1.3
 - Fix error in Github Updater script
 - Fix to release script for plugin header version

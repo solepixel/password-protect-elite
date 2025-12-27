@@ -4,7 +4,7 @@ Tags: password, protection, security, gutenberg, blocks
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,6 +94,13 @@ Yes! Go to 'Password Protect Elite' > 'Global Settings' and enable global protec
 5. Global settings page
 
 == Changelog ==
+
+= 1.1.4 =
+* Readme file change log corrections
+* Safer uninstall process.
+* Upgrade bug fix
+* Settings page text formatting fix
+* Small fix to dynamic change log generation
 
 = 1.1.3 =
 * Fix error in Github Updater script
