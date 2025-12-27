@@ -74,17 +74,43 @@ print_status "Creating release for version $NEW_VERSION..."
 
 # Update version in plugin file (only in header and version constant)
 print_status "Updating plugin version..."
-# Match "Version:" in WordPress plugin header (in PHP docblock comment) and version constant
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # Match " * Version: X.Y.Z" in PHP docblock header (use extended regex, escape * for literal match)
-    sed -i.bak -E "s|^ \\\* Version: $CURRENT_VERSION| * Version: $NEW_VERSION|" password-protect-elite.php
-    # Match "const PPE_VERSION = 'X.Y.Z';" exactly
-    sed -i.bak "s/const PPE_VERSION = '$CURRENT_VERSION'/const PPE_VERSION = '$NEW_VERSION'/" password-protect-elite.php
+# Use Python for reliable version updates (avoids sed escaping issues)
+if command -v python3 &> /dev/null; then
+    python3 <<PYTHON_SCRIPT
+import re
+import sys
+
+plugin_file = "password-protect-elite.php"
+current_version = "$CURRENT_VERSION"
+new_version = "$NEW_VERSION"
+
+try:
+    with open(plugin_file, 'r') as f:
+        content = f.read()
+
+    # Update " * Version: X.Y.Z" in PHP docblock header
+    # Match pattern: space, asterisk, space, Version:, space, version number
+    pattern1 = r'^ \* Version: ' + re.escape(current_version)
+    replacement1 = ' * Version: ' + new_version
+    content = re.sub(pattern1, replacement1, content, flags=re.MULTILINE)
+
+    # Update "const PPE_VERSION = 'X.Y.Z';"
+    pattern2 = r"const PPE_VERSION = '" + re.escape(current_version) + r"';"
+    replacement2 = "const PPE_VERSION = '" + new_version + "';"
+    content = re.sub(pattern2, replacement2, content)
+
+    with open(plugin_file, 'w') as f:
+        f.write(content)
+
+    print(f"Updated plugin version from {current_version} to {new_version}")
+except Exception as e:
+    print(f"Error updating plugin version: {e}", file=sys.stderr)
+    sys.exit(1)
+PYTHON_SCRIPT
 else
-    # Match " * Version: X.Y.Z" in PHP docblock header (use extended regex, escape * for literal match)
-    sed -i -E "s|^ \\\* Version: $CURRENT_VERSION| * Version: $NEW_VERSION|" password-protect-elite.php
-    # Match "const PPE_VERSION = 'X.Y.Z';" exactly
-    sed -i "s/const PPE_VERSION = '$CURRENT_VERSION'/const PPE_VERSION = '$NEW_VERSION'/" password-protect-elite.php
+    # Fallback to sed if Python not available
+    print_error "Python 3 is required to update plugin version. Please install Python 3."
+    exit 1
 fi
 
 # Update version in readme.txt (only the "Stable tag:" line in header, not changelog entries)
