@@ -194,6 +194,17 @@
     background: #fffbf0;
 }
 
+/* Pages List - Lock Icon */
+.ppe-lock-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    color: #646970;
+		position: relative;
+		margin-top: -2px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .ppe-modal-content {

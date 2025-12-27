@@ -18,15 +18,13 @@ tab_width = 4
 
 # JavaScript files
 [*.{js,jsx}]
-indent_style = tab
+indent_style = space
 indent_size = 2
-tab_width = 2
 
 # CSS files
 [*.{css,scss,sass}]
 indent_style = tab
-indent_size = 2
-tab_width = 2
+indent_size = 4
 
 # JSON files
 [*.json]

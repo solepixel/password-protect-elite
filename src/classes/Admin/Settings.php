@@ -28,6 +28,36 @@ class Settings {
 	const SETTINGS_GROUP = 'ppe_settings';
 
 	/**
+	 * Minimum value for password attempts limit.
+	 */
+	const PASSWORD_ATTEMPTS_LIMIT_MIN = 0;
+
+	/**
+	 * Maximum value for password attempts limit.
+	 */
+	const PASSWORD_ATTEMPTS_LIMIT_MAX = 20;
+
+	/**
+	 * Minimum value for lockout duration (minutes).
+	 */
+	const LOCKOUT_DURATION_MIN = 1;
+
+	/**
+	 * Maximum value for lockout duration (minutes).
+	 */
+	const LOCKOUT_DURATION_MAX = 1440;
+
+	/**
+	 * Minimum value for session duration.
+	 */
+	const SESSION_DURATION_MIN = 1;
+
+	/**
+	 * Maximum value for session duration.
+	 */
+	const SESSION_DURATION_MAX = 8760;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -323,8 +353,8 @@ class Settings {
 				name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[session_duration]"
 				id="session_duration"
 				value="<?php echo esc_attr( $duration_value ); ?>"
-				min="1"
-				max="8760"
+				min="<?php echo esc_attr( self::SESSION_DURATION_MIN ); ?>"
+				max="<?php echo esc_attr( self::SESSION_DURATION_MAX ); ?>"
 				class="small-text"
 				style="margin-right: 8px;"
 			/>
@@ -550,11 +580,20 @@ class Settings {
 			name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[password_attempts_limit]"
 			id="password_attempts_limit"
 			value="<?php echo esc_attr( $value ); ?>"
-			min="1"
-			max="20"
+			min="<?php echo esc_attr( self::PASSWORD_ATTEMPTS_LIMIT_MIN ); ?>"
+			max="<?php echo esc_attr( self::PASSWORD_ATTEMPTS_LIMIT_MAX ); ?>"
 			class="small-text"
 		/>
-		<p class="description"><?php esc_html_e( 'Maximum number of failed password attempts before temporary lockout (1-20).', 'password-protect-elite' ); ?></p>
+		<p class="description">
+			<?php
+			printf(
+				/* translators: %1$d: minimum value, %2$d: maximum value */
+				esc_html__( 'Maximum number of failed password attempts before temporary lockout (%1$d-%2$d). Set to 0 to disable lockout feature and allow unlimited attempts.', 'password-protect-elite' ),
+				self::PASSWORD_ATTEMPTS_LIMIT_MIN,
+				self::PASSWORD_ATTEMPTS_LIMIT_MAX
+			);
+			?>
+		</p>
 		<?php
 	}
 
@@ -569,11 +608,20 @@ class Settings {
 			name="<?php echo esc_attr( self::SETTINGS_GROUP ); ?>[lockout_duration]"
 			id="lockout_duration"
 			value="<?php echo esc_attr( $value ); ?>"
-			min="1"
-			max="1440"
+			min="<?php echo esc_attr( self::LOCKOUT_DURATION_MIN ); ?>"
+			max="<?php echo esc_attr( self::LOCKOUT_DURATION_MAX ); ?>"
 			class="small-text"
 		/>
-		<p class="description"><?php esc_html_e( 'Duration of temporary lockout in minutes (1-1440).', 'password-protect-elite' ); ?></p>
+		<p class="description">
+			<?php
+			printf(
+				/* translators: %1$d: minimum value, %2$d: maximum value */
+				esc_html__( 'Duration of temporary lockout in minutes (%1$d-%2$d).', 'password-protect-elite' ),
+				self::LOCKOUT_DURATION_MIN,
+				self::LOCKOUT_DURATION_MAX
+			);
+			?>
+		</p>
 		<?php
 	}
 
@@ -809,15 +857,15 @@ class Settings {
 		$sanitized['auto_clear_cache']  = isset( $input['auto_clear_cache'] ) ? 1 : 0;
 
 		if ( isset( $input['password_attempts_limit'] ) ) {
-			$sanitized['password_attempts_limit'] = max( 1, min( 20, absint( $input['password_attempts_limit'] ) ) );
+			$sanitized['password_attempts_limit'] = max( self::PASSWORD_ATTEMPTS_LIMIT_MIN, min( self::PASSWORD_ATTEMPTS_LIMIT_MAX, absint( $input['password_attempts_limit'] ) ) );
 		}
 
 		if ( isset( $input['lockout_duration'] ) ) {
-			$sanitized['lockout_duration'] = max( 1, min( 1440, absint( $input['lockout_duration'] ) ) );
+			$sanitized['lockout_duration'] = max( self::LOCKOUT_DURATION_MIN, min( self::LOCKOUT_DURATION_MAX, absint( $input['lockout_duration'] ) ) );
 		}
 
 		if ( isset( $input['session_duration'] ) ) {
-			$sanitized['session_duration'] = max( 1, min( 8760, absint( $input['session_duration'] ) ) );
+			$sanitized['session_duration'] = max( self::SESSION_DURATION_MIN, min( self::SESSION_DURATION_MAX, absint( $input['session_duration'] ) ) );
 		}
 
 		if ( isset( $input['session_duration_unit'] ) ) {
@@ -865,12 +913,12 @@ class Settings {
 	/**
 	 * Get max failed password attempts before lockout.
 	 *
-	 * @return int
+	 * @return int Returns 0 if disabled, otherwise 1-20.
 	 */
 	public static function get_password_attempts_limit() {
 		$settings = get_option( self::SETTINGS_GROUP, array() );
 		$limit    = isset( $settings['password_attempts_limit'] ) ? absint( $settings['password_attempts_limit'] ) : 5;
-		return max( 1, min( 20, $limit ) );
+		return max( self::PASSWORD_ATTEMPTS_LIMIT_MIN, min( self::PASSWORD_ATTEMPTS_LIMIT_MAX, $limit ) );
 	}
 
 	/**
@@ -881,7 +929,7 @@ class Settings {
 	public static function get_lockout_duration_minutes() {
 		$settings  = get_option( self::SETTINGS_GROUP, array() );
 		$duration  = isset( $settings['lockout_duration'] ) ? absint( $settings['lockout_duration'] ) : 15;
-		return max( 1, min( 1440, $duration ) );
+		return max( self::LOCKOUT_DURATION_MIN, min( self::LOCKOUT_DURATION_MAX, $duration ) );
 	}
 
 	/**
