@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -113,12 +115,10 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Password Protect Elite ${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref_name }}
+          name: Password Protect Elite ${{ steps.version.outputs.version }}
           body: |
             ## Changes in this release
 
@@ -136,15 +136,6 @@ jobs:
             - **Requires WordPress**: 5.0+
             - **Tested up to**: 6.4+
             - **Requires PHP**: 8.2+
+          files: password-protect-elite-${{ steps.version.outputs.version }}.zip
           draft: false
           prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: password-protect-elite-${{ steps.version.outputs.version }}.zip
-          asset_name: password-protect-elite-${{ steps.version.outputs.version }}.zip
-          asset_content_type: application/zip
