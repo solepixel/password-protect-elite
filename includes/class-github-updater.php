@@ -84,6 +84,7 @@ class PPE_GitHub_Updater {
 		add_filter( 'pre_set_site_transient_update_plugins', [ $this, 'check_for_updates' ] );
 		add_filter( 'plugins_api', [ $this, 'plugin_api_call' ], 10, 3 );
 		add_filter( 'upgrader_pre_download', [ $this, 'upgrader_pre_download' ], 10, 2 );
+		add_filter( 'upgrader_post_install', [ $this, 'upgrader_post_install' ], 10, 3 );
 	}
 
 	/**
@@ -318,5 +319,58 @@ class PPE_GitHub_Updater {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Ensure plugin folder name remains consistent after update.
+	 *
+	 * WordPress may rename the plugin folder if the zip file structure doesn't match.
+	 * This filter ensures the plugin folder name stays as expected.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param bool|WP_Error $response   Response.
+	 * @param array         $hook_extra Extra arguments passed to hooked filters.
+	 * @param array         $result     Installation result data.
+	 * @return bool|WP_Error Response.
+	 */
+	public function upgrader_post_install( $response, $hook_extra, $result ) {
+		// Only process if this is our plugin being updated.
+		if ( ! isset( $hook_extra['plugin'] ) || plugin_basename( $this->plugin_file ) !== $hook_extra['plugin'] ) {
+			return $response;
+		}
+
+		// Get the expected plugin folder name.
+		$plugin_slug     = dirname( plugin_basename( $this->plugin_file ) );
+		$expected_folder = $plugin_slug;
+		$plugins_dir     = WP_PLUGIN_DIR;
+
+		// Check if the installed folder name is different from expected.
+		if ( isset( $result['destination'] ) && is_dir( $result['destination'] ) ) {
+			$installed_folder = basename( $result['destination'] );
+
+			// If folder name doesn't match, rename it.
+			if ( $installed_folder !== $expected_folder ) {
+				$old_path = $result['destination'];
+				$new_path = dirname( $old_path ) . '/' . $expected_folder;
+
+				// Remove the old folder if it exists and is different.
+				if ( $old_path !== $new_path && is_dir( $new_path ) ) {
+					// WordPress might have created both folders, remove the incorrectly named one.
+					$files = new \WP_Filesystem_Direct( null );
+					$files->rmdir( $old_path, true );
+				} elseif ( $old_path !== $new_path ) {
+					// Rename the folder to the correct name using WP_Filesystem.
+					$files = new \WP_Filesystem_Direct( null );
+					$moved = $files->move( $old_path, $new_path );
+					if ( $moved ) {
+						$result['destination']       = $new_path;
+						$result['local_destination'] = $new_path;
+					}
+				}
+			}
+		}
+
+		return $response;
 	}
 }

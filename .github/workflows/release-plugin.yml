@@ -75,22 +75,51 @@ jobs:
 
       - name: Create plugin zip
         run: |
-          zip -r "password-protect-elite-${{ steps.version.outputs.version }}.zip" . \
-            -x ".git/*" \
-               ".github/*" \
-               "node_modules/*" \
-               "src/*" \
-               "package.json" \
-               "package-lock.json" \
-               "composer.json" \
-               "composer.lock" \
-               "webpack.config.js" \
-               "prettier.config.js" \
-               ".DS_Store" \
-               "**/.DS_Store" \
-               "**/*.map" \
-               "scripts/*" \
-               "RELEASE.md"
+          # Create a temporary directory with the plugin folder name
+          PLUGIN_NAME="password-protect-elite"
+          TEMP_DIR=$(mktemp -d)
+          PLUGIN_DIR="$TEMP_DIR/$PLUGIN_NAME"
+          mkdir -p "$PLUGIN_DIR"
+
+          # Copy all necessary files to the plugin directory
+          # Exclude development files but include build/ and vendor/
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='src' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
+            --exclude='webpack.config.js' \
+            --exclude='prettier.config.js' \
+            --exclude='.DS_Store' \
+            --exclude='**/.DS_Store' \
+            --exclude='**/*.map' \
+            --exclude='scripts' \
+            --exclude='RELEASE.md' \
+            --exclude='tests' \
+            --exclude='phpunit.xml' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='.phpunit.result.cache' \
+            --exclude='.prettierignore' \
+            --exclude='.gitignore' \
+            --exclude='*.zip' \
+            --exclude='*.tar.gz' \
+            . "$PLUGIN_DIR/"
+
+          # Create the zip file from the temporary directory
+          cd "$TEMP_DIR"
+          zip -r "password-protect-elite-${{ steps.version.outputs.version }}.zip" "$PLUGIN_NAME"
+
+          # Move the zip file back to the workspace root
+          mv "password-protect-elite-${{ steps.version.outputs.version }}.zip" "$GITHUB_WORKSPACE/"
+
+          # Clean up temporary directory
+          rm -rf "$TEMP_DIR"
+
+          echo "Created plugin zip with correct folder structure"
 
       - name: Generate changelog
         id: changelog
