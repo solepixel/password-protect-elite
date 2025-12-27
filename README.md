@@ -134,6 +134,12 @@ npm run dev
 
 ## Changelog
 
+### 1.1.2
+- Attempt to fix release script.
+
+### 1.1.1
+- Attempt to fix deploy script.
+
 ### 1.1.0
 - Attempt to fix issues with password form login.
 - Added ability to disable failed attempt lockouts.
